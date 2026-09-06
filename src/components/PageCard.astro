@@ -1,0 +1,28 @@
+---
+import type { GalleryPage } from '@/data/pages';
+interface Props { page: GalleryPage }
+const { page } = Astro.props;
+---
+<a class="page-card" href={page.href}>
+  <div class="preview" aria-hidden="true">
+    <div class="orb orb-a"></div>
+    <div class="orb orb-b"></div>
+    <div class="grid"></div>
+    <div class="node node-a"></div>
+    <div class="node node-b"></div>
+    <div class="node node-c"></div>
+  </div>
+  <div class="meta">
+    <div class="topline">
+      <span>{page.category}</span>
+      <span class="status">{page.status}</span>
+    </div>
+    <h2>{page.title}</h2>
+    <p>{page.description}</p>
+    <span class="open">Open page <span aria-hidden="true">↗</span></span>
+  </div>
+</a>
+
+<style>
+.page-card{display:grid;grid-template-columns:1.15fr .85fr;min-height:360px;border:1px solid var(--line);border-radius:28px;overflow:hidden;background:var(--surface);transition:transform .28s ease,border-color .28s ease,background .28s ease}.page-card:hover{transform:translateY(-4px);border-color:rgba(155,135,255,.42);background:var(--surface-strong)}.preview{position:relative;min-height:320px;overflow:hidden;background:radial-gradient(circle at 28% 30%,rgba(120,93,255,.36),transparent 35%),radial-gradient(circle at 72% 68%,rgba(63,219,223,.22),transparent 32%),#0d1018}.grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:38px 38px;mask-image:linear-gradient(to bottom,black,transparent 88%)}.orb{position:absolute;border-radius:50%;filter:blur(1px)}.orb-a{width:190px;height:190px;left:12%;top:18%;border:1px solid rgba(174,160,255,.55);box-shadow:0 0 80px rgba(127,90,255,.18) inset}.orb-b{width:110px;height:110px;right:14%;bottom:16%;border:1px solid rgba(86,229,232,.6)}.node{position:absolute;width:12px;height:12px;border-radius:50%;background:#fff;box-shadow:0 0 0 7px rgba(255,255,255,.06),0 0 30px rgba(155,135,255,.9)}.node-a{left:29%;top:34%}.node-b{left:60%;top:55%}.node-c{left:74%;top:31%}.meta{padding:38px;display:flex;flex-direction:column;justify-content:flex-end}.topline{display:flex;justify-content:space-between;color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.12em}.status{color:#7ff0c7}.meta h2{font-size:clamp(2rem,4vw,3.4rem);letter-spacing:-.055em;line-height:.95;margin:26px 0 14px}.meta p{margin:0;color:var(--muted);line-height:1.7;font-size:.96rem}.open{margin-top:30px;font-size:.88rem;color:#ddd9ff}@media(max-width:780px){.page-card{grid-template-columns:1fr}.preview{min-height:280px}.meta{padding:28px}.meta h2{margin-top:18px}}
+</style>

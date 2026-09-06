@@ -1,0 +1,37 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageCard from '@/components/PageCard.astro';
+import { galleryPages } from '@/data/pages';
+---
+<BaseLayout title="Static Atlas — Page Gallery" description="여러 개의 독립적인 정적 페이지를 모아두는 Astro 기반 갤러리.">
+  <main class="shell home">
+    <header class="nav">
+      <a class="brand" href="/">STATIC<span>ATLAS</span></a>
+      <span class="count">{String(galleryPages.length).padStart(2, '0')} pages</span>
+    </header>
+
+    <section class="hero">
+      <p class="eyebrow">Curated static experiences</p>
+      <h1>One project.<br /><em>Many worlds.</em></h1>
+      <p class="lead">서로 다른 컨셉의 정적 페이지를 하나의 코드베이스에서 관리하기 위한 갤러리입니다. 각 페이지는 독립적으로 디자인하고, 공통 레이아웃과 메타데이터만 공유합니다.</p>
+    </section>
+
+    <section class="gallery" aria-label="Static page gallery">
+      {galleryPages.map((page) => <PageCard page={page} />)}
+      <div class="empty-card">
+        <span>+</span>
+        <p>다음 페이지를 여기에 추가하세요.</p>
+        <code>src/pages/showcase/*.astro</code>
+      </div>
+    </section>
+
+    <footer>
+      <span>Astro · Static-first</span>
+      <span>Built to expand</span>
+    </footer>
+  </main>
+</BaseLayout>
+
+<style>
+.home{padding-bottom:56px}.nav{height:98px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}.brand{font-weight:900;font-size:.9rem;letter-spacing:-.02em}.brand span{font-weight:500;color:var(--muted);margin-left:4px}.count{font-size:.75rem;color:var(--muted);letter-spacing:.12em;text-transform:uppercase}.hero{padding:105px 0 84px;display:grid;grid-template-columns:1.1fr .7fr;column-gap:70px;align-items:end}.hero .eyebrow{grid-column:1/-1;margin:0 0 24px}.hero h1{margin:0;font-size:clamp(4.2rem,9vw,8.5rem);line-height:.82;letter-spacing:-.075em;font-weight:760}.hero h1 em{font-family:Georgia,serif;font-weight:400;color:#b7a8ff}.lead{margin:0 0 4px;color:var(--muted);line-height:1.85;max-width:520px}.gallery{display:grid;gap:22px}.empty-card{min-height:170px;border:1px dashed rgba(255,255,255,.13);border-radius:28px;display:grid;place-items:center;text-align:center;color:var(--muted);padding:28px}.empty-card span{font-size:2.1rem;font-weight:200}.empty-card p{margin:4px 0}.empty-card code{font-size:.75rem;color:#777e8f}footer{margin-top:70px;padding-top:24px;border-top:1px solid var(--line);display:flex;justify-content:space-between;color:#6f7584;font-size:.72rem;text-transform:uppercase;letter-spacing:.13em}@media(max-width:800px){.hero{grid-template-columns:1fr;padding:74px 0 60px}.hero .lead{margin-top:36px}.hero h1{font-size:clamp(3.7rem,18vw,6.5rem)}footer{gap:16px;flex-direction:column}}
+</style>
