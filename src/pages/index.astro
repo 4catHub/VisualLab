@@ -2,7 +2,7 @@
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import { galleryPages } from '@/data/pages';
 ---
-<BaseLayout title="VisualLab" description="Algorithms, systems, and ideas — visualized as interactive web experiments." className="home-page">
+<BaseLayout title="VisualLab" description="A small collection of visual experiments, motion studies, and interactive scenes." className="home-page">
   <main class="home shell">
     <header class="topbar">
       <a class="brand" href="/">VisualLab</a>
@@ -10,9 +10,9 @@ import { galleryPages } from '@/data/pages';
     </header>
 
     <section class="intro" aria-labelledby="page-title">
-      <p class="kicker">Visual experiments</p>
-      <h1 id="page-title">See how it moves.</h1>
-      <p>알고리즘과 시스템의 흐름을 웹 위에서 움직이는 장면으로 기록합니다.</p>
+      <p class="kicker">A collection of visual experiments</p>
+      <h1 id="page-title">Look.<br /><i>Move.</i><br />Stay.</h1>
+      <p>색, 움직임, 공간, 계절과 작은 상호작용을 웹 위에서 실험합니다. 설명보다 장면을 먼저 보여주는 페이지들을 모읍니다.</p>
     </section>
 
     <nav class="experiments" aria-label="Visual experiments">
@@ -28,141 +28,30 @@ import { galleryPages } from '@/data/pages';
 
     <footer>
       <span>VisualLab</span>
-      <span>Astro · Static-first</span>
+      <span>Visual studies for the web</span>
     </footer>
   </main>
 </BaseLayout>
 
 <style>
-  :global(.home-page) {
-    background: #080a0e;
-    color: #f5f6f8;
-  }
-
-  .home {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .topbar {
-    height: 88px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid rgba(255, 255, 255, .1);
-  }
-
-  .brand {
-    font-size: .94rem;
-    font-weight: 800;
-    letter-spacing: -.03em;
-  }
-
-  .count,
-  footer {
-    color: #717783;
-    font-size: .65rem;
-    letter-spacing: .13em;
-    text-transform: uppercase;
-  }
-
-  .intro {
-    padding: clamp(76px, 12vw, 150px) 0 clamp(56px, 8vw, 94px);
-    max-width: 800px;
-  }
-
-  .kicker {
-    margin: 0 0 18px;
-    color: #75e4dd;
-    font-size: .67rem;
-    font-weight: 700;
-    letter-spacing: .16em;
-    text-transform: uppercase;
-  }
-
-  h1 {
-    margin: 0;
-    font-size: clamp(3.5rem, 8vw, 7.6rem);
-    line-height: .9;
-    letter-spacing: -.075em;
-    font-weight: 720;
-  }
-
-  .intro > p:last-child {
-    max-width: 540px;
-    margin: 30px 0 0;
-    color: #9399a5;
-    line-height: 1.8;
-  }
-
-  .experiments {
-    border-top: 1px solid rgba(255, 255, 255, .12);
-  }
-
-  .experiment {
-    min-height: 98px;
-    display: grid;
-    grid-template-columns: 68px 1fr auto 34px;
-    gap: 20px;
-    align-items: center;
-    border-bottom: 1px solid rgba(255, 255, 255, .1);
-    transition: padding .25s ease, background .25s ease;
-  }
-
-  .experiment:hover {
-    padding: 0 18px;
-    background: rgba(255, 255, 255, .035);
-  }
-
-  .number,
-  .category {
-    color: #686f7c;
-    font-size: .64rem;
-    letter-spacing: .13em;
-    text-transform: uppercase;
-  }
-
-  .title {
-    font-size: clamp(1.45rem, 3vw, 2.15rem);
-    font-weight: 650;
-    letter-spacing: -.04em;
-  }
-
-  .category {
-    text-align: right;
-  }
-
-  .arrow {
-    color: #b8adff;
-    font-size: 1rem;
-    transition: transform .25s ease;
-  }
-
-  .experiment:hover .arrow {
-    transform: translate(3px, -3px);
-  }
-
-  footer {
-    margin-top: auto;
-    min-height: 104px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  @media (max-width: 640px) {
-    .experiment {
-      grid-template-columns: 44px 1fr 28px;
-      gap: 12px;
-    }
-
-    .category {
-      display: none;
-    }
-
-    .intro > p:last-child {
-      max-width: 330px;
-    }
-  }
+  :global(.home-page) { background: #f0eee8; color: #151515; }
+  .home { min-height: 100vh; display: flex; flex-direction: column; }
+  .topbar { height: 84px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(0,0,0,.14); }
+  .brand { font-size: .94rem; font-weight: 800; letter-spacing: -.035em; }
+  .count, footer { color: #77746e; font-size: .62rem; letter-spacing: .14em; text-transform: uppercase; }
+  .intro { padding: clamp(78px, 11vw, 142px) 0 clamp(64px, 9vw, 108px); max-width: 880px; }
+  .kicker { margin: 0 0 22px; color: #77746e; font-size: .62rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+  h1 { margin: 0; font-size: clamp(4.5rem, 10.5vw, 10rem); line-height: .72; letter-spacing: -.085em; font-weight: 770; }
+  h1 i { font-family: Georgia, serif; font-weight: 400; color: #6b5cff; }
+  .intro > p:last-child { max-width: 500px; margin: 38px 0 0; color: #77746e; line-height: 1.8; }
+  .experiments { border-top: 1px solid rgba(0,0,0,.16); }
+  .experiment { min-height: 94px; display: grid; grid-template-columns: 64px 1fr auto 34px; gap: 20px; align-items: center; border-bottom: 1px solid rgba(0,0,0,.14); transition: padding .25s ease, background .25s ease; }
+  .experiment:hover { padding: 0 16px; background: rgba(0,0,0,.035); }
+  .number, .category { color: #8b8881; font-size: .61rem; letter-spacing: .13em; text-transform: uppercase; }
+  .title { font-size: clamp(1.4rem, 3vw, 2.05rem); font-weight: 620; letter-spacing: -.04em; }
+  .category { text-align: right; }
+  .arrow { font-size: .95rem; transition: transform .25s ease; }
+  .experiment:hover .arrow { transform: translate(3px,-3px); }
+  footer { margin-top: auto; min-height: 100px; display: flex; align-items: center; justify-content: space-between; }
+  @media(max-width:640px){.experiment{grid-template-columns:44px 1fr 28px;gap:12px}.category{display:none}.intro>p:last-child{max-width:340px}}
 </style>
