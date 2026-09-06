@@ -76,7 +76,6 @@ img, svg { display: block; max-width: 100%; }
 html[data-theme='dark'] .theme-toggle__track i { transform: translateX(13px); }
 .theme-toggle__label { font-size: .56rem; font-weight: 800; letter-spacing: .12em; }
 
-/* Preserve each experiment's identity while translating it into dark mode. */
 html[data-theme='dark'] .home-page { background: #090a0d !important; color: #f1f0eb !important; }
 html[data-theme='dark'] .afterimage-page { background: #0c0c0f !important; color: #f2efe8 !important; }
 html[data-theme='dark'] .afterimage-page .stage {
@@ -122,6 +121,47 @@ html[data-theme='dark'] .season-page .field-note { color: rgba(230,232,223,.64) 
 html[data-theme='dark'] .season-page .topbar,
 html[data-theme='dark'] .season-page .footer { border-color: rgba(255,255,255,.14) !important; }
 
+/* DOM-based pond ripples: local pond coordinates, strong contrast, three staggered rings. */
+.season-page .pond .visual-ripple {
+  position: absolute;
+  z-index: 12;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+  overflow: visible;
+}
+.season-page .pond .visual-ripple i {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 32px;
+  height: 12px;
+  margin-left: -16px;
+  margin-top: -6px;
+  border: 2px solid rgba(244, 250, 236, .92);
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(240, 250, 226, .28);
+  opacity: 0;
+  transform: scale(.25);
+  animation: pond-ripple 2.15s cubic-bezier(.15,.6,.2,1) forwards;
+}
+.season-page .pond .visual-ripple i:nth-child(2) { animation-delay: .16s; border-width: 1.5px; }
+.season-page .pond .visual-ripple i:nth-child(3) { animation-delay: .34s; border-width: 1px; }
+html[data-theme='dark'] .season-page .pond .visual-ripple i {
+  border-color: rgba(229, 241, 255, .94);
+  box-shadow: 0 0 12px rgba(174, 211, 255, .28);
+}
+@keyframes pond-ripple {
+  0% { opacity: 0; transform: scale(.2); }
+  10% { opacity: .95; }
+  72% { opacity: .42; }
+  100% { opacity: 0; transform: scale(8.5); }
+}
+
 @media (max-width: 600px) {
   .theme-toggle { right: 14px; bottom: 14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .season-page .pond .visual-ripple i { animation-duration: .7s; }
 }
