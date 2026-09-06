@@ -37,6 +37,13 @@ const {
   <body class={className}>
     <slot />
 
+    {className.includes('gravity-page') && (
+      <footer class="gravity-index-footer shell">
+        <a href="/">Index</a>
+        <span>VisualLab · 002</span>
+      </footer>
+    )}
+
     <button class="theme-toggle" id="themeToggle" type="button" aria-label="다크 모드로 전환" aria-pressed="false">
       <span class="theme-toggle__track" aria-hidden="true"><i></i></span>
       <span class="theme-toggle__label">DARK</span>
