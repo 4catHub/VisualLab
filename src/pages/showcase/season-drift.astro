@@ -1,0 +1,472 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+---
+<BaseLayout
+  title="Season Drift — VisualLab"
+  description="A slow late-summer to early-autumn visual experience of light, wind, leaves, and water."
+  className="season-page"
+>
+  <main class="scene" id="scene">
+    <div class="sky" aria-hidden="true"></div>
+    <div class="sun" aria-hidden="true"></div>
+    <div class="haze haze-a" aria-hidden="true"></div>
+    <div class="haze haze-b" aria-hidden="true"></div>
+    <canvas id="seasonCanvas" class="season-canvas" aria-hidden="true"></canvas>
+    <div class="grain" aria-hidden="true"></div>
+
+    <header class="topbar shell">
+      <a href="/" class="back">← VisualLab</a>
+      <span>SEASON DRIFT / 003</span>
+      <button id="quietButton" type="button">QUIET MODE</button>
+    </header>
+
+    <section class="hero shell" aria-labelledby="season-title">
+      <div class="hero-copy">
+        <p class="eyebrow">Late summer / early autumn</p>
+        <h1 id="season-title">The day<br />leans softer.</h1>
+        <p>늦여름의 뜨거움이 조금씩 식고, 아직 푸른 잎 사이로 초가을의 빛이 섞이는 시간. 화면은 빠르게 설명하지 않고 천천히 변합니다.</p>
+      </div>
+      <div class="weather-note" aria-live="polite">
+        <span id="phaseLabel">16:42</span>
+        <strong id="moodLabel">WARM AIR</strong>
+      </div>
+      <button class="enter" id="enterButton" type="button">Stay a while <span>↓</span></button>
+    </section>
+
+    <section class="pond-section" id="pondSection" aria-labelledby="pond-title">
+      <div class="shell pond-copy">
+        <p class="eyebrow">Touch the water</p>
+        <h2 id="pond-title">Some moments<br />only move when you do.</h2>
+        <p>수면을 클릭하면 잔물결이 번지고, 바람은 화면에 머문 시간에 따라 조금씩 방향을 바꿉니다.</p>
+      </div>
+      <div class="pond" id="pond" role="button" tabindex="0" aria-label="Interactive pond. Click to create ripples.">
+        <div class="reflection"></div>
+        <div class="shore shore-a"></div>
+        <div class="shore shore-b"></div>
+      </div>
+    </section>
+
+    <section class="field-section shell">
+      <div class="field-copy">
+        <p class="eyebrow">Between seasons</p>
+        <h2>Not summer.<br />Not autumn.</h2>
+      </div>
+      <div class="field-lines" aria-hidden="true">
+        <span style="--i:0"></span><span style="--i:1"></span><span style="--i:2"></span><span style="--i:3"></span>
+        <span style="--i:4"></span><span style="--i:5"></span><span style="--i:6"></span><span style="--i:7"></span>
+        <span style="--i:8"></span><span style="--i:9"></span><span style="--i:10"></span><span style="--i:11"></span>
+      </div>
+      <p class="field-note">머무는 동안 빛은 더 낮아지고, 잎은 더 자주 떨어지며, 화면의 색은 서서히 늦은 오후에서 초저녁으로 넘어갑니다.</p>
+    </section>
+
+    <section class="closing shell">
+      <p class="eyebrow">No finish line</p>
+      <h2>Stay until<br />the light changes.</h2>
+      <button id="restartButton" type="button">Return to late afternoon ↺</button>
+    </section>
+
+    <footer class="shell footer">
+      <a href="/">Index</a>
+      <span>VisualLab · 003</span>
+    </footer>
+  </main>
+
+  <script>
+    type Leaf = { x:number; y:number; vx:number; vy:number; rot:number; vr:number; size:number; hue:number; alpha:number };
+    type Glow = { x:number; y:number; phase:number; speed:number; radius:number };
+    type Ripple = { x:number; y:number; r:number; alpha:number; speed:number };
+
+    const canvas = document.querySelector<HTMLCanvasElement>('#seasonCanvas');
+    const ctx = canvas?.getContext('2d');
+    const scene = document.querySelector<HTMLElement>('#scene');
+    const pond = document.querySelector<HTMLElement>('#pond');
+    const enterButton = document.querySelector<HTMLButtonElement>('#enterButton');
+    const quietButton = document.querySelector<HTMLButtonElement>('#quietButton');
+    const restartButton = document.querySelector<HTMLButtonElement>('#restartButton');
+    const phaseLabel = document.querySelector<HTMLElement>('#phaseLabel');
+    const moodLabel = document.querySelector<HTMLElement>('#moodLabel');
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const state = {
+      width: 0,
+      height: 0,
+      dpr: Math.min(window.devicePixelRatio || 1, 2),
+      start: performance.now(),
+      elapsed: 0,
+      quiet: false,
+      pointerX: .5,
+      leaves: [] as Leaf[],
+      glows: [] as Glow[],
+      ripples: [] as Ripple[]
+    };
+
+    function resize() {
+      if (!canvas || !ctx) return;
+      state.width = window.innerWidth;
+      state.height = window.innerHeight;
+      canvas.width = Math.floor(state.width * state.dpr);
+      canvas.height = Math.floor(state.height * state.dpr);
+      canvas.style.width = `${state.width}px`;
+      canvas.style.height = `${state.height}px`;
+      ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
+    }
+
+    function makeLeaf(initial = false): Leaf {
+      const autumn = Math.min(1, state.elapsed / 90000);
+      return {
+        x: Math.random() * state.width,
+        y: initial ? Math.random() * state.height : -30,
+        vx: -.12 + Math.random() * .35,
+        vy: .22 + Math.random() * .42,
+        rot: Math.random() * Math.PI * 2,
+        vr: -.012 + Math.random() * .024,
+        size: 4 + Math.random() * 7,
+        hue: 82 - autumn * 50 + Math.random() * 14,
+        alpha: .24 + Math.random() * .5
+      };
+    }
+
+    function seed() {
+      state.leaves = Array.from({ length: state.width < 700 ? 14 : 26 }, () => makeLeaf(true));
+      state.glows = Array.from({ length: state.width < 700 ? 16 : 28 }, () => ({
+        x: Math.random() * state.width,
+        y: state.height * (.55 + Math.random() * .38),
+        phase: Math.random() * Math.PI * 2,
+        speed: .0005 + Math.random() * .001,
+        radius: 1 + Math.random() * 2
+      }));
+    }
+
+    function updateAtmosphere(now: number) {
+      state.elapsed = now - state.start;
+      const t = Math.min(1, state.elapsed / 120000);
+      scene?.style.setProperty('--time', t.toFixed(4));
+      scene?.style.setProperty('--wind', String((state.pointerX - .5) * 2));
+
+      const totalMinutes = 16 * 60 + 42 + Math.round(t * 88);
+      const hh = Math.floor(totalMinutes / 60);
+      const mm = totalMinutes % 60;
+      if (phaseLabel) phaseLabel.textContent = `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
+      if (moodLabel) moodLabel.textContent = t < .33 ? 'WARM AIR' : t < .68 ? 'GOLDEN WIND' : 'BLUE HOUR';
+    }
+
+    function drawLeaf(leaf: Leaf, now: number) {
+      if (!ctx) return;
+      const wind = (state.pointerX - .5) * .55 + Math.sin(now * .00035 + leaf.y * .012) * .1;
+      leaf.x += leaf.vx + wind;
+      leaf.y += leaf.vy * (state.quiet ? .35 : 1);
+      leaf.rot += leaf.vr;
+      if (leaf.y > state.height + 30 || leaf.x < -40 || leaf.x > state.width + 40) Object.assign(leaf, makeLeaf(false));
+
+      ctx.save();
+      ctx.translate(leaf.x, leaf.y);
+      ctx.rotate(leaf.rot);
+      ctx.scale(1, .55);
+      ctx.beginPath();
+      ctx.fillStyle = `hsla(${leaf.hue}, 38%, 43%, ${leaf.alpha})`;
+      ctx.ellipse(0, 0, leaf.size, leaf.size * .55, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawGlow(glow: Glow, now: number) {
+      if (!ctx) return;
+      const pulse = (Math.sin(now * glow.speed + glow.phase) + 1) * .5;
+      ctx.beginPath();
+      ctx.fillStyle = `rgba(255, 221, 128, ${.04 + pulse * .24})`;
+      ctx.shadowBlur = 12 + pulse * 18;
+      ctx.shadowColor = 'rgba(255,205,112,.65)';
+      ctx.arc(glow.x, glow.y + Math.sin(now * .0006 + glow.phase) * 6, glow.radius + pulse * 1.2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
+    function drawRipples() {
+      if (!ctx) return;
+      state.ripples = state.ripples.filter(r => r.alpha > .01);
+      for (const r of state.ripples) {
+        r.r += r.speed;
+        r.alpha *= .985;
+        ctx.beginPath();
+        ctx.strokeStyle = `rgba(224, 232, 217, ${r.alpha})`;
+        ctx.lineWidth = 1;
+        ctx.ellipse(r.x, r.y, r.r, r.r * .28, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+
+    function draw(now: number) {
+      if (!ctx) return;
+      updateAtmosphere(now);
+      ctx.clearRect(0, 0, state.width, state.height);
+      state.glows.forEach(g => drawGlow(g, now));
+      state.leaves.forEach(l => drawLeaf(l, now));
+      drawRipples();
+      if (!reducedMotion) requestAnimationFrame(draw);
+    }
+
+    function addRipple(clientX: number, clientY: number) {
+      state.ripples.push({ x: clientX, y: clientY, r: 8, alpha: .55, speed: 1.8 });
+      state.ripples.push({ x: clientX, y: clientY, r: 2, alpha: .32, speed: 1.15 });
+    }
+
+    window.addEventListener('pointermove', (event) => { state.pointerX = event.clientX / Math.max(window.innerWidth, 1); }, { passive: true });
+    window.addEventListener('resize', () => { resize(); seed(); });
+    pond?.addEventListener('pointerdown', (event) => addRipple(event.clientX, event.clientY));
+    pond?.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        const rect = pond.getBoundingClientRect();
+        addRipple(rect.left + rect.width / 2, rect.top + rect.height / 2);
+      }
+    });
+    enterButton?.addEventListener('click', () => pond?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth' }));
+    quietButton?.addEventListener('click', () => {
+      state.quiet = !state.quiet;
+      quietButton.textContent = state.quiet ? 'WAKE WIND' : 'QUIET MODE';
+      scene?.classList.toggle('quiet', state.quiet);
+    });
+    restartButton?.addEventListener('click', () => {
+      state.start = performance.now();
+      state.elapsed = 0;
+      window.scrollTo({ top: 0, behavior: reducedMotion ? 'auto' : 'smooth' });
+    });
+
+    resize();
+    seed();
+    draw(performance.now());
+  </script>
+
+  <style>
+    :global(.season-page) {
+      background: #cbb998;
+      color: #263028;
+      overflow-x: hidden;
+    }
+
+    .scene {
+      --time: 0;
+      --wind: 0;
+      position: relative;
+      min-height: 100vh;
+      background: #cbb998;
+      transition: filter .8s ease;
+    }
+    .scene.quiet { filter: saturate(.78); }
+
+    .sky {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(to bottom,
+          color-mix(in srgb, #b9d8df calc((1 - var(--time)) * 100%), #6c7f91),
+          color-mix(in srgb, #f0d5a3 calc((1 - var(--time)) * 100%), #a69088) 58%,
+          color-mix(in srgb, #b9a47b calc((1 - var(--time)) * 100%), #525a5e));
+    }
+
+    .sun {
+      position: fixed;
+      z-index: 0;
+      width: min(18vw, 230px);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      top: calc(14vh + var(--time) * 36vh);
+      left: calc(72vw - var(--time) * 11vw);
+      background: rgba(255, 231, 170, .8);
+      box-shadow: 0 0 90px 40px rgba(255, 210, 130, .18);
+      pointer-events: none;
+    }
+
+    .haze {
+      position: fixed;
+      z-index: 0;
+      pointer-events: none;
+      border-radius: 50%;
+      filter: blur(70px);
+      opacity: .24;
+    }
+    .haze-a { width: 48vw; height: 22vw; left: -10vw; top: 28vh; background: #f2e3b9; }
+    .haze-b { width: 44vw; height: 20vw; right: -8vw; bottom: 8vh; background: #879b7a; }
+
+    .season-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .grain {
+      position: fixed;
+      inset: 0;
+      z-index: 8;
+      pointer-events: none;
+      opacity: .055;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    .topbar, .hero, .pond-section, .field-section, .closing, .footer { position: relative; z-index: 5; }
+
+    .topbar {
+      height: 84px;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      border-bottom: 1px solid rgba(38, 48, 40, .2);
+      font-size: .62rem;
+      font-weight: 700;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+    }
+    .topbar > span { justify-self: center; }
+    .topbar button { justify-self: end; border: 0; background: none; padding: 0; color: inherit; font: inherit; letter-spacing: inherit; cursor: pointer; }
+
+    .hero {
+      min-height: calc(100vh - 84px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-top: 80px;
+      padding-bottom: 70px;
+    }
+    .hero-copy { max-width: 920px; }
+    .eyebrow { color: rgba(38,48,40,.65); font-size: .62rem; }
+    h1, h2 { margin: 0; letter-spacing: -.065em; font-weight: 560; }
+    h1 { margin-top: 22px; font-family: Georgia, serif; font-style: italic; font-size: clamp(5.3rem, 12vw, 12rem); line-height: .82; }
+    .hero-copy > p:last-child { margin: 36px 0 0; max-width: 520px; color: rgba(38,48,40,.64); line-height: 1.8; }
+
+    .weather-note {
+      position: absolute;
+      right: 0;
+      bottom: 82px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 5px;
+    }
+    .weather-note span { font-family: Georgia,serif; font-size: 2rem; font-style: italic; }
+    .weather-note strong { font-size: .58rem; letter-spacing: .16em; }
+
+    .enter {
+      position: absolute;
+      left: 0;
+      bottom: 72px;
+      border: 0;
+      background: none;
+      padding: 0;
+      color: inherit;
+      font-size: .68rem;
+      letter-spacing: .08em;
+      cursor: pointer;
+    }
+    .enter span { display: inline-block; margin-left: 9px; animation: breathe 2.4s ease-in-out infinite; }
+
+    .pond-section {
+      min-height: 110vh;
+      padding-top: 150px;
+      overflow: hidden;
+    }
+    .pond-copy { position: relative; z-index: 2; }
+    .pond-copy h2, .field-copy h2, .closing h2 { margin-top: 20px; font-family: Georgia,serif; font-style: italic; font-size: clamp(4.1rem, 8vw, 8.7rem); line-height: .9; }
+    .pond-copy > p:last-child { max-width: 450px; color: rgba(38,48,40,.6); line-height: 1.8; margin-top: 28px; }
+
+    .pond {
+      position: absolute;
+      inset: 43% 0 0;
+      cursor: crosshair;
+      overflow: hidden;
+      outline: none;
+      background:
+        linear-gradient(to bottom, rgba(91,116,111,.46), rgba(46,70,70,.84)),
+        repeating-linear-gradient(178deg, rgba(255,255,255,.04) 0 1px, transparent 1px 9px);
+    }
+    .reflection {
+      position: absolute;
+      width: 32vw;
+      height: 9vw;
+      left: calc(57vw - var(--time) * 10vw);
+      top: 12%;
+      border-radius: 50%;
+      transform: scaleY(.24);
+      filter: blur(7px);
+      background: rgba(255,219,156,.25);
+    }
+    .shore { position: absolute; bottom: -18%; width: 64vw; height: 38%; border-radius: 50%; background: #4f6049; filter: blur(2px); }
+    .shore-a { left: -16vw; transform: rotate(6deg); }
+    .shore-b { right: -20vw; transform: rotate(-5deg); background: #3f5141; }
+
+    .field-section {
+      min-height: 105vh;
+      display: grid;
+      grid-template-columns: 1fr .9fr;
+      gap: 80px;
+      align-items: center;
+      padding-top: 120px;
+      padding-bottom: 120px;
+    }
+    .field-lines {
+      position: relative;
+      height: 540px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-around;
+    }
+    .field-lines span {
+      width: 3px;
+      height: calc(38% + var(--i) * 3.5%);
+      border-radius: 999px;
+      background: linear-gradient(to top, #4d6748, #71885d 65%, #b8a35e);
+      transform-origin: bottom;
+      transform: rotate(calc((var(--wind) * 4deg) + (var(--i) - 5) * .35deg));
+      animation: grass calc(3.6s + var(--i) * .14s) ease-in-out infinite alternate;
+    }
+    .field-note { grid-column: 1/-1; max-width: 580px; margin: -70px 0 0 auto; color: rgba(38,48,40,.57); line-height: 1.8; }
+
+    .closing {
+      min-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+    }
+    .closing button {
+      margin-top: 44px;
+      border: 1px solid rgba(38,48,40,.3);
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      padding: 14px 20px;
+      color: inherit;
+      cursor: pointer;
+    }
+
+    .footer {
+      min-height: 92px;
+      border-top: 1px solid rgba(38,48,40,.2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: .6rem;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    @keyframes breathe { 50% { transform: translateY(7px); } }
+    @keyframes grass { from { transform: rotate(calc((var(--wind) * 3deg) - 2deg)); } to { transform: rotate(calc((var(--wind) * 5deg) + 3deg)); } }
+
+    @media (max-width: 760px) {
+      .topbar { grid-template-columns: 1fr 1fr; }
+      .topbar > span { display: none; }
+      .weather-note { right: 0; bottom: 92px; }
+      .field-section { grid-template-columns: 1fr; gap: 20px; }
+      .field-lines { height: 360px; }
+      .field-note { margin: 0; }
+      .pond-section { min-height: 100vh; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .enter span, .field-lines span { animation: none; }
+    }
+  </style>
+</BaseLayout>
