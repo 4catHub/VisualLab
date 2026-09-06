@@ -9,21 +9,63 @@ interface Props {
 
 const {
   title,
-  description = 'A collection of crafted static pages.',
+  description = 'A collection of crafted visual experiments.',
   className = ''
 } = Astro.props;
 ---
 <!doctype html>
-<html lang="ko">
+<html lang="ko" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <meta name="description" content={description} />
     <meta name="generator" content={Astro.generator} />
+    <meta name="color-scheme" content="light dark" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>{title}</title>
+    <script is:inline>
+      (() => {
+        try {
+          const saved = localStorage.getItem('visual-lab-theme');
+          document.documentElement.dataset.theme = saved === 'dark' ? 'dark' : 'light';
+        } catch {
+          document.documentElement.dataset.theme = 'light';
+        }
+      })();
+    </script>
   </head>
   <body class={className}>
     <slot />
+
+    <button class="theme-toggle" id="themeToggle" type="button" aria-label="다크 모드로 전환" aria-pressed="false">
+      <span class="theme-toggle__track" aria-hidden="true"><i></i></span>
+      <span class="theme-toggle__label">DARK</span>
+    </button>
+
+    <script is:inline>
+      (() => {
+        const root = document.documentElement;
+        const button = document.getElementById('themeToggle');
+        if (!button) return;
+        const label = button.querySelector('.theme-toggle__label');
+
+        const sync = () => {
+          const dark = root.dataset.theme === 'dark';
+          button.setAttribute('aria-pressed', String(dark));
+          button.setAttribute('aria-label', dark ? '화이트 모드로 전환' : '다크 모드로 전환');
+          if (label) label.textContent = dark ? 'LIGHT' : 'DARK';
+        };
+
+        button.addEventListener('click', () => {
+          const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+          root.dataset.theme = next;
+          try { localStorage.setItem('visual-lab-theme', next); } catch {}
+          sync();
+          window.dispatchEvent(new CustomEvent('visual-lab-theme', { detail: { theme: next } }));
+        });
+
+        sync();
+      })();
+    </script>
   </body>
 </html>
