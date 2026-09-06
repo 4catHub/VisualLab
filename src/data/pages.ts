@@ -15,5 +15,13 @@ export const galleryPages: GalleryPage[] = [
     category: 'System Design',
     status: 'live',
     href: '/showcase/signal-orbit/'
+  },
+  {
+    slug: 'gravity-field',
+    title: 'Gravity Field',
+    description: '포인터의 힘으로 입자와 타이포그래피를 휘게 만드는 인터랙티브 비주얼 페이지.',
+    category: 'Interaction',
+    status: 'live',
+    href: '/showcase/gravity-field/'
   }
 ];
