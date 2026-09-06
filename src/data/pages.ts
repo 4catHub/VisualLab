@@ -9,12 +9,12 @@ export interface GalleryPage {
 
 export const galleryPages: GalleryPage[] = [
   {
-    slug: 'signal-orbit',
-    title: 'Signal Orbit',
-    description: '분산 시스템의 요청 흐름을 우주 궤도처럼 표현한 비주얼 랜딩 페이지.',
-    category: 'System Design',
+    slug: 'afterimage',
+    title: 'Afterimage',
+    description: '색과 타이포그래피가 포인터 움직임 뒤에 잔상처럼 따라오는 키네틱 비주얼 실험.',
+    category: 'Kinetic Type',
     status: 'live',
-    href: '/showcase/signal-orbit/'
+    href: '/showcase/afterimage/'
   },
   {
     slug: 'gravity-field',
@@ -23,5 +23,13 @@ export const galleryPages: GalleryPage[] = [
     category: 'Interaction',
     status: 'live',
     href: '/showcase/gravity-field/'
+  },
+  {
+    slug: 'season-drift',
+    title: 'Season Drift',
+    description: '늦여름에서 초가을로 천천히 넘어가는 빛, 바람, 낙엽, 수면을 담은 계절 장면.',
+    category: 'Ambient Scene',
+    status: 'live',
+    href: '/showcase/season-drift/'
   }
 ];
