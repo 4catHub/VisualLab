@@ -46,25 +46,49 @@ const {
       (() => {
         const root = document.documentElement;
         const button = document.getElementById('themeToggle');
-        if (!button) return;
-        const label = button.querySelector('.theme-toggle__label');
+        if (button) {
+          const label = button.querySelector('.theme-toggle__label');
+          const sync = () => {
+            const dark = root.dataset.theme === 'dark';
+            button.setAttribute('aria-pressed', String(dark));
+            button.setAttribute('aria-label', dark ? '화이트 모드로 전환' : '다크 모드로 전환');
+            if (label) label.textContent = dark ? 'LIGHT' : 'DARK';
+          };
 
-        const sync = () => {
-          const dark = root.dataset.theme === 'dark';
-          button.setAttribute('aria-pressed', String(dark));
-          button.setAttribute('aria-label', dark ? '화이트 모드로 전환' : '다크 모드로 전환');
-          if (label) label.textContent = dark ? 'LIGHT' : 'DARK';
-        };
-
-        button.addEventListener('click', () => {
-          const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
-          root.dataset.theme = next;
-          try { localStorage.setItem('visual-lab-theme', next); } catch {}
+          button.addEventListener('click', () => {
+            const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+            root.dataset.theme = next;
+            try { localStorage.setItem('visual-lab-theme', next); } catch {}
+            sync();
+            window.dispatchEvent(new CustomEvent('visual-lab-theme', { detail: { theme: next } }));
+          });
           sync();
-          window.dispatchEvent(new CustomEvent('visual-lab-theme', { detail: { theme: next } }));
-        });
+        }
 
-        sync();
+        const pond = document.getElementById('pond');
+        if (pond && !pond.dataset.domRippleReady) {
+          pond.dataset.domRippleReady = 'true';
+
+          const makeRipple = (clientX, clientY) => {
+            const rect = pond.getBoundingClientRect();
+            const x = Math.max(0, Math.min(rect.width, clientX - rect.left));
+            const y = Math.max(0, Math.min(rect.height, clientY - rect.top));
+            const group = document.createElement('span');
+            group.className = 'visual-ripple';
+            group.style.left = `${x}px`;
+            group.style.top = `${y}px`;
+            group.innerHTML = '<i></i><i></i><i></i>';
+            pond.appendChild(group);
+            window.setTimeout(() => group.remove(), 2400);
+          };
+
+          pond.addEventListener('pointerdown', (event) => makeRipple(event.clientX, event.clientY));
+          pond.addEventListener('keydown', (event) => {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            const rect = pond.getBoundingClientRect();
+            makeRipple(rect.left + rect.width / 2, rect.top + rect.height / 2);
+          });
+        }
       })();
     </script>
   </body>
