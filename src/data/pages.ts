@@ -31,5 +31,13 @@ export const galleryPages: GalleryPage[] = [
     category: 'Ambient Scene',
     status: 'live',
     href: '/showcase/season-drift/'
+  },
+  {
+    slug: 'pixel-mirage',
+    title: 'Pixel Mirage',
+    description: '8bit 모자이크와 착시 패턴이 포인터를 따라 변조되는 옵티컬 일루전 실험.',
+    category: 'Optical Illusion',
+    status: 'live',
+    href: '/showcase/pixel-mirage/'
   }
 ];

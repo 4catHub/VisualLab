@@ -1,0 +1,511 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Pixel Mirage — VisualLab"
+  description="An 8-bit optical illusion built from mosaic tiles, moiré patterns, and pointer-reactive distortion."
+  className="pixel-mirage-page"
+>
+  <main class="stage" id="pixelStage" data-mode="mosaic">
+    <div class="crt" aria-hidden="true"></div>
+    <div class="glow glow-a" aria-hidden="true"></div>
+    <div class="glow glow-b" aria-hidden="true"></div>
+
+    <header class="topbar shell">
+      <a href="/" class="back">← VisualLab</a>
+      <span>PIXEL MIRAGE / 004</span>
+      <button id="modeButton" class="mode-button" type="button" aria-label="Change illusion mode">
+        <i aria-hidden="true"></i>
+        <span id="modeText">MOSAIC</span>
+      </button>
+    </header>
+
+    <section class="hero shell" aria-labelledby="pixel-title">
+      <div class="copy">
+        <p class="eyebrow">8BIT / MOSAIC / OPTICAL ILLUSION</p>
+        <h1 id="pixel-title">
+          <span>PIXEL</span>
+          <span class="outline">MIRAGE</span>
+        </h1>
+        <p class="lede">
+          가까이 보면 픽셀, 조금 떨어지면 패턴, 움직이면 착시가 됩니다.
+          포인터를 천천히 움직여 화면의 초점을 흔들고 같은 격자가 서로 다른 이미지처럼 읽히는 순간을 만들어보세요.
+        </p>
+        <div class="legend" aria-label="Interaction notes">
+          <div><strong>01</strong><span>move focus</span></div>
+          <div><strong>02</strong><span>change mode</span></div>
+          <div><strong>03</strong><span>step back</span></div>
+        </div>
+      </div>
+
+      <div class="board-wrap">
+        <div class="board" id="illusionBoard" aria-hidden="true">
+          <div class="moire moire-a"></div>
+          <div class="moire moire-b"></div>
+          <div class="board-grid" id="boardGrid"></div>
+          <div class="focus-ring"></div>
+          <div class="crosshair"></div>
+          <div class="board-copy board-copy-top"><span>LOOK CLOSE</span><span>STEP BACK</span></div>
+          <div class="board-copy board-copy-bottom"><span>FOCUS SHIFTS THE PATTERN</span></div>
+        </div>
+        <div class="board-meta" aria-live="polite">
+          <span id="modeReadout">MOSAIC</span>
+          <span id="focusReadout">FOCUS 0.52 / 0.46</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="ticker" aria-hidden="true">
+      <div class="ticker-track">
+        <span>PIXEL</span><b>·</b><span>DEPTH</span><b>·</b><span>NOISE</span><b>·</b><span>ILLUSION</span><b>·</b>
+        <span>PIXEL</span><b>·</b><span>DEPTH</span><b>·</b><span>NOISE</span><b>·</b><span>ILLUSION</span><b>·</b>
+      </div>
+    </section>
+
+    <section class="principles shell">
+      <div class="section-head">
+        <p class="eyebrow">Three ways to trick the eye</p>
+        <h2>같은 격자도<br />읽히는 방식은 달라집니다.</h2>
+        <p>이 페이지는 낮은 해상도, 반복, 색 분리 자체를 주인공으로 둡니다. 움직이는 오브젝트보다 보는 사람의 초점이 장면을 바꿉니다.</p>
+      </div>
+
+      <div class="cards">
+        <article class="card">
+          <span class="card-index">01</span>
+          <div class="card-art checker-art" aria-hidden="true"><i></i></div>
+          <h3>Pixel Crawl</h3>
+          <p>격자를 미세하게 어긋나게 만들어 정지 화면에서도 표면이 꿈틀거리는 것처럼 보이게 합니다.</p>
+        </article>
+        <article class="card">
+          <span class="card-index">02</span>
+          <div class="card-art rings-art" aria-hidden="true"><i></i></div>
+          <h3>False Depth</h3>
+          <p>서로 다른 주기의 선을 겹쳐 평면 위에서 터널과 파동이 생기는 모아레 착시를 만듭니다.</p>
+        </article>
+        <article class="card">
+          <span class="card-index">03</span>
+          <div class="card-art split-art" aria-hidden="true"><i></i></div>
+          <h3>Color Split</h3>
+          <p>제한된 색과 CRT 스캔라인을 겹쳐 오래된 디지털 화면의 불안정한 색 분리를 재현합니다.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="finale shell">
+      <div class="finale-copy">
+        <p class="eyebrow">Interaction note</p>
+        <h2>Move slowly.<br />Let the eye fail a little.</h2>
+      </div>
+      <div class="finale-panel">
+        <p>정확히 보여주는 대신 잠깐 해상도를 잃게 하고, 다시 초점을 찾게 만드는 실험입니다. 보드 위에서 천천히 움직일수록 착시가 더 오래 남습니다.</p>
+      </div>
+    </section>
+
+    <footer class="footer shell">
+      <a href="/">Index</a>
+      <span>VisualLab · 004</span>
+    </footer>
+  </main>
+
+  <script>
+    const stage = document.querySelector<HTMLElement>('#pixelStage');
+    const board = document.querySelector<HTMLElement>('#illusionBoard');
+    const boardGrid = document.querySelector<HTMLElement>('#boardGrid');
+    const modeButton = document.querySelector<HTMLButtonElement>('#modeButton');
+    const modeText = document.querySelector<HTMLElement>('#modeText');
+    const modeReadout = document.querySelector<HTMLElement>('#modeReadout');
+    const focusReadout = document.querySelector<HTMLElement>('#focusReadout');
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const modes = [
+      { key: 'mosaic', label: 'MOSAIC' },
+      { key: 'dither', label: 'DITHER' },
+      { key: 'invert', label: 'INVERT' }
+    ];
+
+    const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+    const columns = 24;
+    const rows = 16;
+    const tiles: { el: HTMLSpanElement; x: number; y: number; index: number }[] = [];
+
+    let modeIndex = 0;
+    let targetX = 0.52;
+    let targetY = 0.46;
+    let currentX = targetX;
+    let currentY = targetY;
+    let frame = 0;
+
+    function buildGrid() {
+      if (!boardGrid) return;
+      const fragment = document.createDocumentFragment();
+      for (let row = 0; row < rows; row += 1) {
+        for (let col = 0; col < columns; col += 1) {
+          const tile = document.createElement('span');
+          tile.className = 'tile';
+          const x = col / (columns - 1);
+          const y = row / (rows - 1);
+          tiles.push({ el: tile, x, y, index: row * columns + col });
+          fragment.appendChild(tile);
+        }
+      }
+      boardGrid.appendChild(fragment);
+    }
+
+    function syncMode() {
+      if (!stage) return;
+      const mode = modes[modeIndex] ?? modes[0];
+      stage.dataset.mode = mode.key;
+      if (modeText) modeText.textContent = mode.label;
+      if (modeReadout) modeReadout.textContent = mode.label;
+    }
+
+    function setPointer(clientX: number, clientY: number) {
+      const rect = board?.getBoundingClientRect();
+      if (!rect) return;
+      targetX = clamp((clientX - rect.left) / rect.width, 0, 1);
+      targetY = clamp((clientY - rect.top) / rect.height, 0, 1);
+      if (reducedMotion) {
+        currentX = targetX;
+        currentY = targetY;
+        paintTiles();
+      }
+    }
+
+    function paintTiles() {
+      if (!stage) return;
+      stage.style.setProperty('--px', `${(currentX * 100).toFixed(2)}%`);
+      stage.style.setProperty('--py', `${(currentY * 100).toFixed(2)}%`);
+      if (focusReadout) focusReadout.textContent = `FOCUS ${currentX.toFixed(2)} / ${currentY.toFixed(2)}`;
+
+      const mode = stage.dataset.mode ?? 'mosaic';
+      tiles.forEach(({ el, x, y, index }) => {
+        const dx = x - currentX;
+        const dy = y - currentY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const influence = clamp(1 - dist * 1.85, 0, 1);
+        const wave = Math.sin(frame * 0.06 + dist * 18 - index * 0.015);
+        let light = 10 + influence * 62 + (wave + 1) * 6;
+        let hue = 178 + influence * 128 + wave * 20;
+        let alpha = 0.08 + influence * 0.9;
+        let scale = 0.72 + influence * 0.42;
+        let shiftX = dx * -14;
+        let shiftY = dy * -14;
+
+        if (mode === 'dither') {
+          light = Math.round(light / 18) * 18;
+          hue += (index % 2) * 30;
+          scale = 0.86 + Math.round(influence * 3) * 0.07;
+          shiftX *= 0.55;
+          shiftY *= 0.55;
+        }
+        if (mode === 'invert') {
+          light = 92 - light * 0.72;
+          hue = 330 - influence * 170 + wave * 18;
+          alpha = 0.18 + influence * 0.74;
+          scale = 0.92 + influence * 0.24;
+          shiftX *= -0.3;
+          shiftY *= -0.3;
+        }
+
+        el.style.backgroundColor = `hsla(${hue.toFixed(0)}, 92%, ${clamp(light, 8, 92).toFixed(0)}%, ${alpha.toFixed(2)})`;
+        el.style.transform = `translate3d(${shiftX.toFixed(2)}px, ${shiftY.toFixed(2)}px, 0) scale(${scale.toFixed(2)})`;
+      });
+    }
+
+    function animate() {
+      currentX += (targetX - currentX) * 0.08;
+      currentY += (targetY - currentY) * 0.08;
+      frame += 1;
+      paintTiles();
+      requestAnimationFrame(animate);
+    }
+
+    board?.addEventListener('pointermove', (event) => setPointer(event.clientX, event.clientY), { passive: true });
+    board?.addEventListener('pointerleave', () => {
+      targetX = 0.52;
+      targetY = 0.46;
+    });
+    modeButton?.addEventListener('click', () => {
+      modeIndex = (modeIndex + 1) % modes.length;
+      syncMode();
+      paintTiles();
+    });
+    stage?.addEventListener('click', (event) => {
+      if ((event.target as HTMLElement).closest('a, button')) return;
+      modeIndex = (modeIndex + 1) % modes.length;
+      syncMode();
+      paintTiles();
+    });
+
+    buildGrid();
+    syncMode();
+    paintTiles();
+    if (!reducedMotion) animate();
+  </script>
+
+  <style>
+    :global(.pixel-mirage-page) {
+      background: #07070a;
+      color: #f4f1ea;
+      overflow-x: hidden;
+    }
+    .stage {
+      --px: 52%;
+      --py: 46%;
+      position: relative;
+      min-height: 100vh;
+      overflow: clip;
+      color: #f4f1ea;
+      background:
+        radial-gradient(circle at var(--px) var(--py), rgba(111, 245, 214, .11), transparent 20%),
+        radial-gradient(circle at 82% 18%, rgba(255, 87, 199, .12), transparent 22%),
+        linear-gradient(180deg, #0a0a0f 0%, #060609 40%, #040405 100%);
+    }
+    .crt {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      opacity: .18;
+      background:
+        repeating-linear-gradient(to bottom, rgba(255,255,255,.06) 0 1px, transparent 1px 4px),
+        linear-gradient(90deg, rgba(255,0,140,.05), transparent 32%, rgba(0,255,224,.04) 68%, transparent);
+      mix-blend-mode: screen;
+    }
+    .glow {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .glow-a { width: 34vw; height: 34vw; min-width: 300px; min-height: 300px; left: -6vw; top: 16vh; background: rgba(94,115,255,.18); }
+    .glow-b { width: 28vw; height: 28vw; min-width: 260px; min-height: 260px; right: -8vw; bottom: 10vh; background: rgba(255,97,186,.16); }
+
+    .topbar, .footer {
+      position: relative;
+      z-index: 3;
+      min-height: 84px;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,.12);
+      font-size: .64rem;
+      font-weight: 700;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+    }
+    .footer { border-top: 1px solid rgba(255,255,255,.12); border-bottom: 0; margin-top: 70px; }
+    .back { justify-self: start; }
+    .topbar > span, .footer > span { justify-self: center; }
+    .mode-button {
+      justify-self: end;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.04);
+      color: inherit;
+      padding: 10px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: .14em;
+      font-size: .6rem;
+    }
+    .mode-button i { width: 9px; height: 9px; border-radius: 50%; background: #70f7d7; box-shadow: 0 0 20px rgba(112,247,215,.8); }
+
+    .hero {
+      position: relative;
+      z-index: 2;
+      min-height: calc(100vh - 84px);
+      display: grid;
+      grid-template-columns: minmax(0,.9fr) minmax(380px,1.1fr);
+      gap: clamp(34px,5vw,72px);
+      align-items: center;
+      padding-top: 56px;
+      padding-bottom: 56px;
+    }
+    .copy h1 {
+      margin: 18px 0 28px;
+      font-size: clamp(4.2rem,10.5vw,10rem);
+      line-height: .82;
+      letter-spacing: -.09em;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+    .copy h1 span { display: block; text-shadow: 4px 0 0 rgba(255,90,190,.22), -4px 0 0 rgba(111,245,214,.18); }
+    .copy h1 .outline { color: transparent; -webkit-text-stroke: 2px rgba(244,241,234,.9); text-shadow: 6px 0 0 rgba(255,90,190,.2), -6px 0 0 rgba(111,245,214,.18); }
+    .lede { max-width: 470px; margin: 0; font-size: 1rem; line-height: 1.85; color: rgba(244,241,234,.68); }
+    .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 32px; }
+    .legend div { min-width: 130px; padding: 14px 16px; border-radius: 16px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.04); }
+    .legend strong { display: block; margin-bottom: 6px; font-size: .76rem; letter-spacing: .18em; }
+    .legend span { font-size: .8rem; color: rgba(244,241,234,.64); text-transform: uppercase; letter-spacing: .1em; }
+
+    .board-wrap { display: flex; flex-direction: column; gap: 14px; }
+    .board {
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+      aspect-ratio: 5 / 4;
+      min-height: 420px;
+      border-radius: 28px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: #09090c;
+      box-shadow: 0 30px 80px rgba(0,0,0,.28), inset 0 0 0 1px rgba(255,255,255,.03);
+    }
+    .moire { position: absolute; inset: -12%; z-index: 1; pointer-events: none; opacity: .2; mix-blend-mode: screen; }
+    .moire-a {
+      background: repeating-radial-gradient(circle at center, rgba(255,255,255,.12) 0 1px, transparent 1px 11px);
+      transform: rotate(8deg) scale(1.1);
+    }
+    .moire-b {
+      background: repeating-linear-gradient(90deg, rgba(255,255,255,.06) 0 1px, transparent 1px 8px);
+      transform: rotate(-8deg) scale(1.06);
+      opacity: .16;
+    }
+    .board-grid {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: repeat(24,1fr);
+      gap: 4px;
+      height: 100%;
+      padding: 20px;
+    }
+    .tile {
+      aspect-ratio: 1;
+      border-radius: 4px;
+      background: rgba(255,255,255,.08);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.05);
+      will-change: transform, background-color;
+    }
+    .stage[data-mode='dither'] .tile { border-radius: 0; }
+    .focus-ring {
+      position: absolute;
+      z-index: 3;
+      width: 152px;
+      aspect-ratio: 1;
+      left: var(--px);
+      top: var(--py);
+      transform: translate(-50%,-50%);
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,.48);
+      box-shadow: 0 0 0 999px rgba(0,0,0,.16), 0 0 32px rgba(111,245,214,.18);
+      pointer-events: none;
+    }
+    .crosshair { position: absolute; z-index: 3; left: var(--px); top: var(--py); width: 24px; height: 24px; transform: translate(-50%,-50%); pointer-events: none; }
+    .crosshair::before, .crosshair::after { content: ''; position: absolute; background: rgba(255,255,255,.55); }
+    .crosshair::before { left: 50%; top: 0; width: 1px; height: 100%; transform: translateX(-50%); }
+    .crosshair::after { top: 50%; left: 0; height: 1px; width: 100%; transform: translateY(-50%); }
+    .board-copy {
+      position: absolute;
+      z-index: 4;
+      left: 18px;
+      right: 18px;
+      display: flex;
+      justify-content: space-between;
+      font-size: .56rem;
+      letter-spacing: .24em;
+      text-transform: uppercase;
+      color: rgba(244,241,234,.7);
+      pointer-events: none;
+    }
+    .board-copy-top { top: 16px; }
+    .board-copy-bottom { bottom: 16px; justify-content: center; }
+    .board-meta { display: flex; justify-content: space-between; gap: 16px; font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: rgba(244,241,234,.65); }
+
+    .ticker { position: relative; z-index: 2; overflow: hidden; border-top: 1px solid rgba(255,255,255,.1); border-bottom: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.03); }
+    .ticker-track { display: inline-flex; gap: 18px; min-width: max-content; padding: 14px 0; font-size: .72rem; font-weight: 800; letter-spacing: .24em; text-transform: uppercase; animation: ticker 22s linear infinite; }
+    .ticker-track b { color: rgba(255,255,255,.4); font-weight: 400; }
+
+    .principles {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: minmax(0,.8fr) minmax(0,1.2fr);
+      gap: 28px;
+      padding-top: 90px;
+      align-items: start;
+    }
+    .section-head h2 { margin: 12px 0 18px; font-size: clamp(2.6rem,5vw,4.8rem); line-height: .9; letter-spacing: -.06em; }
+    .section-head p:last-child { max-width: 420px; color: rgba(244,241,234,.66); line-height: 1.8; }
+    .cards { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 18px; }
+    .card { position: relative; padding: 22px; border-radius: 24px; border: 1px solid rgba(255,255,255,.11); background: rgba(255,255,255,.04); backdrop-filter: blur(12px); }
+    .card-index { display: inline-block; margin-bottom: 14px; font-size: .62rem; letter-spacing: .18em; text-transform: uppercase; color: rgba(244,241,234,.58); }
+    .card-art { position: relative; overflow: hidden; height: 154px; margin-bottom: 18px; border-radius: 18px; background: #0b0b0f; border: 1px solid rgba(255,255,255,.08); }
+    .card-art i { position: absolute; inset: 0; display: block; }
+    .checker-art i {
+      background: radial-gradient(circle at center, rgba(111,245,214,.22), transparent 36%), repeating-conic-gradient(from 45deg, rgba(255,255,255,.16) 0deg 25deg, transparent 25deg 50deg);
+      background-size: auto, 22px 22px;
+      transform: scale(1.3) rotate(8deg);
+    }
+    .rings-art i {
+      background: repeating-radial-gradient(circle at center, rgba(255,255,255,.22) 0 2px, transparent 2px 12px), radial-gradient(circle at center, rgba(255,87,199,.18), transparent 40%);
+      transform: scale(1.08);
+    }
+    .split-art i {
+      background: linear-gradient(90deg, rgba(255,89,187,.18), transparent 30%, rgba(111,245,214,.18) 70%, transparent), repeating-linear-gradient(90deg, rgba(255,255,255,.18) 0 6px, transparent 6px 18px);
+      transform: skewX(-12deg) scale(1.18);
+    }
+    .card h3 { margin: 0 0 10px; font-size: 1.05rem; }
+    .card p { margin: 0; line-height: 1.75; color: rgba(244,241,234,.64); font-size: .92rem; }
+
+    .finale {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: minmax(0,.95fr) minmax(0,1.05fr);
+      gap: 22px;
+      margin-top: 86px;
+      padding-top: 26px;
+      border-top: 1px solid rgba(255,255,255,.12);
+    }
+    .finale-copy h2 { margin: 10px 0 0; font-size: clamp(2.5rem,5vw,4.6rem); line-height: .92; letter-spacing: -.06em; }
+    .finale-panel { padding: 24px; border-radius: 24px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.11); }
+    .finale-panel p { margin: 0; line-height: 1.8; color: rgba(244,241,234,.74); }
+
+    @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+    :global(html[data-theme='light'] .pixel-mirage-page) { background: #f4efe6; color: #111; }
+    :global(html[data-theme='light'] .pixel-mirage-page .stage) {
+      color: #111;
+      background: radial-gradient(circle at var(--px) var(--py), rgba(84,191,178,.16), transparent 22%), radial-gradient(circle at 82% 18%, rgba(255,87,199,.14), transparent 22%), linear-gradient(180deg,#f7f2ea 0%,#efeadf 100%);
+    }
+    :global(html[data-theme='light'] .pixel-mirage-page .topbar),
+    :global(html[data-theme='light'] .pixel-mirage-page .footer),
+    :global(html[data-theme='light'] .pixel-mirage-page .ticker),
+    :global(html[data-theme='light'] .pixel-mirage-page .finale) { border-color: rgba(0,0,0,.12); }
+    :global(html[data-theme='light'] .pixel-mirage-page .mode-button),
+    :global(html[data-theme='light'] .pixel-mirage-page .legend div),
+    :global(html[data-theme='light'] .pixel-mirage-page .card),
+    :global(html[data-theme='light'] .pixel-mirage-page .finale-panel) { background: rgba(255,255,255,.5); border-color: rgba(0,0,0,.1); }
+    :global(html[data-theme='light'] .pixel-mirage-page .lede),
+    :global(html[data-theme='light'] .pixel-mirage-page .board-meta),
+    :global(html[data-theme='light'] .pixel-mirage-page .card p),
+    :global(html[data-theme='light'] .pixel-mirage-page .section-head p:last-child),
+    :global(html[data-theme='light'] .pixel-mirage-page .finale-panel p),
+    :global(html[data-theme='light'] .pixel-mirage-page .legend span) { color: rgba(17,17,17,.64); }
+    :global(html[data-theme='light'] .pixel-mirage-page .copy h1 .outline) { -webkit-text-stroke-color: rgba(17,17,17,.9); }
+
+    @media (max-width: 1080px) {
+      .hero, .principles, .finale { grid-template-columns: 1fr; }
+      .cards { grid-template-columns: 1fr; }
+      .copy h1 { font-size: clamp(4rem,16vw,8rem); }
+    }
+    @media (max-width: 720px) {
+      .topbar, .footer { grid-template-columns: 1fr auto; gap: 12px; }
+      .topbar > span, .footer > span { display: none; }
+      .hero { padding-top: 34px; padding-bottom: 40px; }
+      .board { min-height: 340px; }
+      .board-grid { gap: 3px; padding: 14px; }
+      .focus-ring { width: 112px; }
+      .legend { display: grid; grid-template-columns: 1fr; }
+      .board-meta { flex-direction: column; gap: 6px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .ticker-track { animation: none; }
+    }
+  </style>
+</BaseLayout>
