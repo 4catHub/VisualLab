@@ -49,6 +49,10 @@ const {
       <span class="theme-toggle__label">DARK</span>
     </button>
 
+    {className.includes('cosmic-atlas-page') && (
+      <script is:inline src="/cosmic-atlas-ui.js"></script>
+    )}
+
     <script is:inline>
       (() => {
         const root = document.documentElement;
