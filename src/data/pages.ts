@@ -39,5 +39,13 @@ export const galleryPages: GalleryPage[] = [
     category: 'Optical Illusion',
     status: 'live',
     href: '/showcase/pixel-mirage/'
+  },
+  {
+    slug: 'cosmic-atlas',
+    title: 'Cosmic Atlas',
+    description: '드래그와 줌으로 별자리에서 성운·성단, 은하, 은하단까지 스케일을 넘나드는 인터랙티브 우주 지도.',
+    category: 'Spatial Atlas',
+    status: 'live',
+    href: '/showcase/cosmic-atlas/'
   }
 ];

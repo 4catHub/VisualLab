@@ -1,0 +1,318 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Cosmic Atlas — VisualLab"
+  description="A pan-and-zoom cosmic atlas that moves from constellations and nebulae to galaxies and galaxy clusters."
+  className="cosmic-atlas-page"
+>
+  <main class="atlas" id="atlasStage">
+    <canvas class="space" id="spaceCanvas" aria-hidden="true"></canvas>
+    <div class="vignette" aria-hidden="true"></div>
+    <div class="noise" aria-hidden="true"></div>
+
+    <header class="topbar">
+      <a href="/" class="brand">← VisualLab</a>
+      <div class="title-lockup">
+        <span>COSMIC ATLAS</span>
+        <i>RELATIVE MAP / NOT TO PHYSICAL SCALE</i>
+      </div>
+      <button class="reset" id="resetButton" type="button">HOME VIEW</button>
+    </header>
+
+    <aside class="scale-rail" aria-label="Cosmic scale">
+      <span class="rail-caption">SCALE</span>
+      <div class="rail-line"><i id="scaleMarker"></i></div>
+      <button type="button" data-level="4">CONSTELLATION</button>
+      <button type="button" data-level="3">NEBULA / CLUSTER</button>
+      <button type="button" data-level="2">GALAXY</button>
+      <button type="button" data-level="1">GALAXY GROUP</button>
+      <button type="button" data-level="0">GALAXY CLUSTER</button>
+    </aside>
+
+    <section class="hud" aria-label="Atlas status">
+      <div class="hud-block"><span>VIEW</span><strong id="levelLabel">GALAXY</strong></div>
+      <div class="hud-block coordinates"><span>FIELD POSITION</span><strong id="positionLabel">+000 / +000</strong></div>
+      <div class="hud-block"><span>MAGNIFICATION</span><strong id="zoomLabel">1.00×</strong></div>
+    </section>
+
+    <section class="intro" id="introPanel">
+      <p class="eyebrow">Pan / zoom / inspect</p>
+      <h1>THE SKY<br />DOESN'T END<br /><em>AT THE SKY.</em></h1>
+      <p>드래그해서 공간을 옮기고, 휠이나 핀치로 확대·축소하세요. 가까이 들어가면 별자리와 성운이, 멀어지면 은하와 은하단이 같은 지도 위에서 다른 밀도로 나타납니다.</p>
+      <button id="enterAtlas" type="button">ENTER THE MAP <span>↘</span></button>
+    </section>
+
+    <aside class="object-panel" id="objectPanel" aria-live="polite">
+      <button class="panel-close" id="panelClose" type="button" aria-label="Close object details">×</button>
+      <span class="object-kind" id="objectKind">GALAXY</span>
+      <h2 id="objectName">Andromeda</h2>
+      <p class="object-distance" id="objectDistance">2.5 million light-years</p>
+      <p class="object-copy" id="objectCopy">Local Group의 대표적인 나선은하. 맨눈으로도 어두운 하늘에서 희미하게 볼 수 있습니다.</p>
+      <dl>
+        <div><dt>MAP</dt><dd id="objectMap">+460 / −180</dd></div>
+        <div><dt>ZOOM BAND</dt><dd id="objectBand">GALAXY</dd></div>
+      </dl>
+    </aside>
+
+    <div class="zoom-controls" aria-label="Zoom controls">
+      <button id="zoomIn" type="button" aria-label="Zoom in">+</button>
+      <button id="zoomOut" type="button" aria-label="Zoom out">−</button>
+    </div>
+
+    <div class="mini-map-wrap" aria-label="Overview map">
+      <div class="mini-head"><span>OVERVIEW</span><i id="miniScale">GALAXY</i></div>
+      <canvas id="miniMap" width="220" height="128" aria-hidden="true"></canvas>
+    </div>
+
+    <div class="interaction-note" id="interactionNote">
+      <span class="mouse-icon" aria-hidden="true"><i></i></span>
+      <span>DRAG TO PAN<br />SCROLL TO CHANGE SCALE</span>
+    </div>
+
+    <div class="cursor-label" id="cursorLabel" aria-hidden="true"></div>
+  </main>
+
+  <script>
+    type AtlasObject = {
+      id: string;
+      name: string;
+      type: 'constellation' | 'nebula' | 'cluster' | 'galaxy' | 'group' | 'galaxy-cluster';
+      x: number;
+      y: number;
+      size: number;
+      minZoom: number;
+      maxZoom: number;
+      accent: string;
+      distance: string;
+      band: string;
+      copy: string;
+      seed: number;
+    };
+    type Point = { x: number; y: number };
+
+    const canvas = document.querySelector<HTMLCanvasElement>('#spaceCanvas');
+    const ctx = canvas?.getContext('2d');
+    const miniMap = document.querySelector<HTMLCanvasElement>('#miniMap');
+    const miniCtx = miniMap?.getContext('2d');
+    const stage = document.querySelector<HTMLElement>('#atlasStage');
+    const intro = document.querySelector<HTMLElement>('#introPanel');
+    const enterButton = document.querySelector<HTMLButtonElement>('#enterAtlas');
+    const resetButton = document.querySelector<HTMLButtonElement>('#resetButton');
+    const zoomInButton = document.querySelector<HTMLButtonElement>('#zoomIn');
+    const zoomOutButton = document.querySelector<HTMLButtonElement>('#zoomOut');
+    const levelButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-level]')];
+    const levelLabel = document.querySelector<HTMLElement>('#levelLabel');
+    const positionLabel = document.querySelector<HTMLElement>('#positionLabel');
+    const zoomLabel = document.querySelector<HTMLElement>('#zoomLabel');
+    const scaleMarker = document.querySelector<HTMLElement>('#scaleMarker');
+    const miniScale = document.querySelector<HTMLElement>('#miniScale');
+    const note = document.querySelector<HTMLElement>('#interactionNote');
+    const cursorLabel = document.querySelector<HTMLElement>('#cursorLabel');
+    const objectPanel = document.querySelector<HTMLElement>('#objectPanel');
+    const panelClose = document.querySelector<HTMLButtonElement>('#panelClose');
+    const objectKind = document.querySelector<HTMLElement>('#objectKind');
+    const objectName = document.querySelector<HTMLElement>('#objectName');
+    const objectDistance = document.querySelector<HTMLElement>('#objectDistance');
+    const objectCopy = document.querySelector<HTMLElement>('#objectCopy');
+    const objectMap = document.querySelector<HTMLElement>('#objectMap');
+    const objectBand = document.querySelector<HTMLElement>('#objectBand');
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const objects: AtlasObject[] = [
+      { id:'orion', name:'Orion', type:'constellation', x:-310, y:140, size:115, minZoom:2.7, maxZoom:7.5, accent:'#b8e8ff', distance:'~1,300 light-years across this view', band:'CONSTELLATION', copy:'오리온의 밝은 별들과 허리띠를 하나의 선형 패턴으로 읽는 영역입니다. 내부에 오리온 성운이 겹쳐 보입니다.', seed:11 },
+      { id:'cassiopeia', name:'Cassiopeia', type:'constellation', x:260, y:-250, size:104, minZoom:2.9, maxZoom:7.5, accent:'#e7d7ff', distance:'~440–550 light-years to key stars', band:'CONSTELLATION', copy:'W 모양으로 읽히는 북쪽 하늘의 별자리. 확대하면 밝기가 다른 다섯 개의 주성이 연결됩니다.', seed:19 },
+      { id:'cygnus', name:'Cygnus', type:'constellation', x:470, y:210, size:130, minZoom:3.1, maxZoom:7.5, accent:'#b9dcff', distance:'~1,400–2,600 light-years to key stars', band:'CONSTELLATION', copy:'은하수의 짙은 별밭을 가로지르는 백조자리. 십자 형태의 주요 별을 중심으로 구성했습니다.', seed:23 },
+      { id:'orion-nebula', name:'Orion Nebula · M42', type:'nebula', x:-276, y:164, size:62, minZoom:1.8, maxZoom:5.8, accent:'#d6a8ff', distance:'~1,344 light-years', band:'NEBULA', copy:'오리온자리 검 아래에 놓인 거대한 별 탄생 영역. 이 지도에서는 보랏빛 가스 구름으로 표시됩니다.', seed:31 },
+      { id:'rosette', name:'Rosette Nebula', type:'nebula', x:-520, y:-40, size:86, minZoom:1.65, maxZoom:4.6, accent:'#ff98b7', distance:'~5,200 light-years', band:'NEBULA', copy:'외뿔소자리 방향에 있는 큰 방출성운. 중심의 성단이 주변 가스를 밀어낸 고리 구조를 가집니다.', seed:37 },
+      { id:'pleiades', name:'Pleiades · M45', type:'cluster', x:-40, y:-300, size:42, minZoom:1.9, maxZoom:5.4, accent:'#95c9ff', distance:'~444 light-years', band:'STAR CLUSTER', copy:'황소자리 방향의 산개성단. 푸른 별들이 느슨하게 모인 형태로 확대 레벨에서 또렷해집니다.', seed:41 },
+      { id:'omega-centauri', name:'Omega Centauri', type:'cluster', x:210, y:430, size:52, minZoom:1.85, maxZoom:5.0, accent:'#ffdca8', distance:'~17,090 light-years', band:'STAR CLUSTER', copy:'우리 은하에서 가장 크고 밝은 구상성단 중 하나. 작은 구형 별무리로 표현했습니다.', seed:43 },
+      { id:'milky-way', name:'Milky Way', type:'galaxy', x:0, y:0, size:310, minZoom:.62, maxZoom:2.65, accent:'#b6d8ff', distance:'You are here', band:'GALAXY', copy:'우리가 속한 막대나선은하. 이 지도에서는 다음 스케일로 넘어가는 기준점이자 중심 좌표로 사용됩니다.', seed:51 },
+      { id:'andromeda', name:'Andromeda · M31', type:'galaxy', x:490, y:-190, size:205, minZoom:.48, maxZoom:1.78, accent:'#bdd8ff', distance:'~2.5 million light-years', band:'GALAXY', copy:'Local Group의 가장 큰 은하. 우리 은하와 같은 그룹 안에 있으며 화면 오른쪽 위 방향에 배치했습니다.', seed:53 },
+      { id:'triangulum', name:'Triangulum · M33', type:'galaxy', x:350, y:270, size:116, minZoom:.52, maxZoom:1.72, accent:'#c7c0ff', distance:'~2.7 million light-years', band:'GALAXY', copy:'Local Group의 세 번째로 큰 나선은하. 안드로메다보다 작고 느슨한 팔 구조를 가집니다.', seed:59 },
+      { id:'large-magellanic', name:'Large Magellanic Cloud', type:'galaxy', x:-330, y:390, size:92, minZoom:.7, maxZoom:2.1, accent:'#a6dfff', distance:'~163,000 light-years', band:'SATELLITE GALAXY', copy:'우리 은하 주변을 도는 위성은하. 남쪽 하늘 방향의 불규칙한 빛 덩어리로 나타냅니다.', seed:61 },
+      { id:'local-group', name:'Local Group', type:'group', x:110, y:45, size:610, minZoom:.29, maxZoom:.82, accent:'#9bbcff', distance:'~10 million light-years span', band:'GALAXY GROUP', copy:'우리 은하, 안드로메다, 삼각형자리 은하와 수십 개의 작은 은하가 함께 속한 중력적 그룹입니다.', seed:67 },
+      { id:'virgo', name:'Virgo Cluster', type:'galaxy-cluster', x:-620, y:-350, size:265, minZoom:.18, maxZoom:.58, accent:'#ffd39c', distance:'~54 million light-years', band:'GALAXY CLUSTER', copy:'수천 개에 가까운 은하가 모이는 거대한 은하단. Local Group이 속한 더 큰 구조를 이해할 때 중요한 기준점입니다.', seed:71 },
+      { id:'fornax', name:'Fornax Cluster', type:'galaxy-cluster', x:620, y:430, size:220, minZoom:.18, maxZoom:.5, accent:'#ffc5ae', distance:'~62 million light-years', band:'GALAXY CLUSTER', copy:'남쪽 하늘 방향의 가까운 은하단 중 하나. 작은 은하 무리가 여러 층으로 포개져 보이도록 표현했습니다.', seed:73 },
+      { id:'coma', name:'Coma Cluster', type:'galaxy-cluster', x:720, y:-520, size:285, minZoom:.14, maxZoom:.46, accent:'#e9c1ff', distance:'~320 million light-years', band:'GALAXY CLUSTER', copy:'수천 개의 은하가 밀집한 거대 은하단. 가장 멀리 축소했을 때 외곽 구조로 나타납니다.', seed:79 },
+      { id:'perseus', name:'Perseus Cluster', type:'galaxy-cluster', x:-760, y:520, size:250, minZoom:.14, maxZoom:.45, accent:'#a8d5ff', distance:'~240 million light-years', band:'GALAXY CLUSTER', copy:'페르세우스자리 방향의 풍부한 은하단. 외곽 지도에서 Local Group과 다른 방향의 대형 구조를 보여줍니다.', seed:83 }
+    ];
+
+    const constellationLines: Record<string, Point[]> = {
+      orion: [{x:-355,y:105},{x:-330,y:140},{x:-300,y:126},{x:-272,y:148},{x:-250,y:104},{x:-300,y:126},{x:-286,y:172},{x:-263,y:205},{x:-286,y:172},{x:-330,y:140},{x:-340,y:205}],
+      cassiopeia: [{x:210,y:-270},{x:242,y:-224},{x:276,y:-270},{x:316,y:-228},{x:350,y:-274}],
+      cygnus: [{x:410,y:180},{x:456,y:205},{x:510,y:215},{x:558,y:235},{x:510,y:215},{x:498,y:165},{x:522,y:276}]
+    };
+
+    const state = {
+      width: window.innerWidth, height: window.innerHeight, dpr: Math.min(window.devicePixelRatio || 1, 2),
+      cameraX: 20, cameraY: 10, targetCameraX: 20, targetCameraY: 10, zoom: .95, targetZoom: .95,
+      dragging: false, dragStartX: 0, dragStartY: 0, cameraStartX: 0, cameraStartY: 0,
+      hoverId: '', selectedId: '', time: 0, entered: false, pointers: new Map<number, Point>(), pinchDistance: 0, pinchZoom: .95
+    };
+
+    const levels = [
+      { label:'GALAXY CLUSTER', zoom:.22 }, { label:'GALAXY GROUP', zoom:.42 }, { label:'GALAXY', zoom:.95 },
+      { label:'NEBULA / CLUSTER', zoom:2.0 }, { label:'CONSTELLATION', zoom:3.75 }
+    ];
+
+    const clamp = (value:number, min:number, max:number) => Math.min(max, Math.max(min, value));
+    const lerp = (a:number, b:number, t:number) => a + (b - a) * t;
+    const seeded = (seed:number) => { const x = Math.sin(seed * 999.71) * 43758.5453; return x - Math.floor(x); };
+
+    function worldToScreen(x:number, y:number): Point { return { x: state.width*.5 + (x-state.cameraX)*state.zoom, y: state.height*.5 + (y-state.cameraY)*state.zoom }; }
+    function screenToWorld(x:number, y:number): Point { return { x: state.cameraX + (x-state.width*.5)/state.zoom, y: state.cameraY + (y-state.height*.5)/state.zoom }; }
+
+    function resize() {
+      if (!canvas || !ctx) return;
+      state.width = window.innerWidth; state.height = window.innerHeight;
+      canvas.width = Math.floor(state.width*state.dpr); canvas.height = Math.floor(state.height*state.dpr);
+      canvas.style.width = `${state.width}px`; canvas.style.height = `${state.height}px`;
+      ctx.setTransform(state.dpr,0,0,state.dpr,0,0); drawMiniMap();
+    }
+
+    function objectOpacity(object: AtlasObject) {
+      const enter = clamp((state.zoom-object.minZoom)/Math.max(object.minZoom*.35,.08),0,1);
+      const leave = clamp((object.maxZoom-state.zoom)/Math.max(object.maxZoom*.25,.12),0,1);
+      return Math.min(enter,leave);
+    }
+
+    function drawBackgroundStars() {
+      if (!ctx) return;
+      const cell = state.zoom>1.8 ? 88 : state.zoom>.7 ? 130 : 190;
+      const worldLeft = state.cameraX-state.width/state.zoom/2-cell, worldTop = state.cameraY-state.height/state.zoom/2-cell;
+      const worldRight = state.cameraX+state.width/state.zoom/2+cell, worldBottom = state.cameraY+state.height/state.zoom/2+cell;
+      for (let gy=Math.floor(worldTop/cell); gy<=Math.ceil(worldBottom/cell); gy+=1) {
+        for (let gx=Math.floor(worldLeft/cell); gx<=Math.ceil(worldRight/cell); gx+=1) {
+          const seed = gx*92821+gy*68917, count = state.zoom>2.2 ? 7 : state.zoom>.7 ? 4 : 2;
+          for (let i=0;i<count;i+=1) {
+            const p = worldToScreen((gx+seeded(seed+i*17))*cell,(gy+seeded(seed+i*29+3))*cell);
+            const twinkle=.55+Math.sin(state.time*.001+seed+i)*.16, r=.35+seeded(seed+i*7)*(state.zoom>2?1.25:.75);
+            ctx.beginPath(); ctx.fillStyle=`rgba(210,230,255,${(.16+seeded(seed+i*5)*.4)*twinkle})`; ctx.arc(p.x,p.y,r,0,Math.PI*2); ctx.fill();
+          }
+        }
+      }
+    }
+
+    function drawDust() {
+      if (!ctx || state.zoom<.48 || state.zoom>3.2) return;
+      const center=worldToScreen(0,0); ctx.save(); ctx.translate(center.x,center.y); ctx.rotate(-.28);
+      const width=900*state.zoom, height=170*state.zoom, gradient=ctx.createRadialGradient(0,0,4,0,0,width*.65);
+      gradient.addColorStop(0,`rgba(111,151,255,${.08*clamp(state.zoom,0,1.8)})`); gradient.addColorStop(.45,`rgba(110,87,173,${.045*clamp(state.zoom,0,1.4)})`); gradient.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=gradient; ctx.scale(1,height/Math.max(width,1)); ctx.beginPath(); ctx.arc(0,0,width,0,Math.PI*2); ctx.fill(); ctx.restore();
+    }
+
+    function drawGalaxy(object:AtlasObject, opacity:number) {
+      if (!ctx) return; const p=worldToScreen(object.x,object.y), radius=object.size*state.zoom*.36;
+      if (radius<2 || p.x<-radius*2 || p.y<-radius*2 || p.x>state.width+radius*2 || p.y>state.height+radius*2) return;
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate((object.seed%9)*.17-.6); ctx.globalCompositeOperation='screen';
+      const glow=ctx.createRadialGradient(0,0,1,0,0,radius); glow.addColorStop(0,`rgba(245,248,255,${.8*opacity})`); glow.addColorStop(.08,`rgba(184,208,255,${.42*opacity})`); glow.addColorStop(.42,`rgba(115,133,205,${.14*opacity})`); glow.addColorStop(1,'rgba(50,70,130,0)');
+      const squash=.38+seeded(object.seed)*.22; ctx.scale(1,squash); ctx.fillStyle=glow; ctx.beginPath(); ctx.arc(0,0,radius,0,Math.PI*2); ctx.fill(); ctx.scale(1,1/squash);
+      for (let arm=0;arm<3;arm+=1) { ctx.beginPath(); for(let i=0;i<70;i+=1){const t=i/69, angle=arm*Math.PI*2/3+t*5.6, rr=5+t*radius*.86, x=Math.cos(angle)*rr, y=Math.sin(angle)*rr*.42; if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);} ctx.strokeStyle=`rgba(174,199,255,${.16*opacity})`;ctx.lineWidth=Math.max(.5,radius*.012);ctx.stroke(); }
+      ctx.restore();
+    }
+
+    function drawNebula(object:AtlasObject, opacity:number) {
+      if (!ctx) return; const p=worldToScreen(object.x,object.y), radius=object.size*state.zoom; if(radius<3)return; ctx.save();ctx.globalCompositeOperation='screen';
+      for(let i=0;i<9;i+=1){const a=seeded(object.seed+i*7)*Math.PI*2,d=seeded(object.seed+i*11)*radius*.44,x=p.x+Math.cos(a)*d,y=p.y+Math.sin(a)*d*.65,rr=radius*(.22+seeded(object.seed+i*13)*.48),g=ctx.createRadialGradient(x,y,0,x,y,rr),alpha=(.04+seeded(object.seed+i*5)*.08)*opacity,rgb=object.id==='rosette'?'255,104,151':'166,126,255';g.addColorStop(0,`rgba(${rgb},${alpha*2.6})`);g.addColorStop(.45,`rgba(${rgb},${alpha})`);g.addColorStop(1,`rgba(${rgb},0)`);ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,rr,0,Math.PI*2);ctx.fill();}
+      ctx.restore();
+    }
+
+    function drawStarCluster(object:AtlasObject, opacity:number) {
+      if(!ctx)return; const p=worldToScreen(object.x,object.y),radius=object.size*state.zoom*.72;
+      for(let i=0;i<42;i+=1){const angle=seeded(object.seed+i*17)*Math.PI*2,d=Math.pow(seeded(object.seed+i*23),.62)*radius,x=p.x+Math.cos(angle)*d,y=p.y+Math.sin(angle)*d,size=.55+seeded(object.seed+i*31)*1.9;ctx.beginPath();ctx.fillStyle=`rgba(220,235,255,${(.22+seeded(object.seed+i)*.68)*opacity})`;ctx.arc(x,y,size,0,Math.PI*2);ctx.fill();}
+    }
+
+    function drawGalaxyCluster(object:AtlasObject, opacity:number) {
+      if(!ctx)return; const p=worldToScreen(object.x,object.y),radius=object.size*state.zoom*.72;
+      for(let i=0;i<58;i+=1){const angle=seeded(object.seed+i*13)*Math.PI*2,d=Math.pow(seeded(object.seed+i*19),.7)*radius,x=p.x+Math.cos(angle)*d,y=p.y+Math.sin(angle)*d*.72,len=2+seeded(object.seed+i*29)*6;ctx.save();ctx.translate(x,y);ctx.rotate(seeded(object.seed+i*37)*Math.PI);ctx.fillStyle=`rgba(207,218,255,${(.09+seeded(object.seed+i)*.28)*opacity})`;ctx.beginPath();ctx.ellipse(0,0,len,len*.34,0,0,Math.PI*2);ctx.fill();ctx.restore();}
+      ctx.beginPath();ctx.strokeStyle=`rgba(190,205,255,${.08*opacity})`;ctx.lineWidth=1;ctx.arc(p.x,p.y,radius*.78,0,Math.PI*2);ctx.stroke();
+    }
+
+    function drawGroup(object:AtlasObject, opacity:number){if(!ctx)return;const p=worldToScreen(object.x,object.y),radius=object.size*state.zoom*.48;ctx.save();ctx.setLineDash([4,9]);ctx.strokeStyle=`rgba(135,174,255,${.24*opacity})`;ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(p.x,p.y,radius,radius*.64,-.15,0,Math.PI*2);ctx.stroke();ctx.restore();}
+
+    function drawConstellation(object:AtlasObject, opacity:number){if(!ctx)return;const points=constellationLines[object.id];if(!points)return;const screen=points.map(p=>worldToScreen(p.x,p.y));ctx.save();ctx.strokeStyle=`rgba(188,220,255,${.28*opacity})`;ctx.lineWidth=1;ctx.beginPath();screen.forEach((p,index)=>index===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));ctx.stroke();screen.forEach((p,index)=>{const r=1.5+(index%3)*.8;ctx.beginPath();ctx.fillStyle=`rgba(235,245,255,${(.72+(index%2)*.2)*opacity})`;ctx.shadowBlur=9;ctx.shadowColor='rgba(150,205,255,.7)';ctx.arc(p.x,p.y,r,0,Math.PI*2);ctx.fill();});ctx.restore();}
+
+    function drawLabel(object:AtlasObject, opacity:number){if(!ctx||opacity<.12)return;const p=worldToScreen(object.x,object.y),selected=object.id===state.selectedId,hovered=object.id===state.hoverId,alpha=clamp(opacity*(selected||hovered?1.3:.82),0,1),size=object.type==='galaxy-cluster'||object.type==='group'?10:11,offset=Math.max(12,object.size*state.zoom*(object.type==='galaxy'?.12:.22));ctx.font=`600 ${size}px Inter, system-ui, sans-serif`;ctx.textBaseline='middle';ctx.fillStyle=`rgba(231,240,255,${alpha})`;ctx.fillText(object.name.toUpperCase(),p.x+offset,p.y-4);ctx.font='500 8px Inter, system-ui, sans-serif';ctx.fillStyle=`rgba(151,169,198,${alpha*.72})`;ctx.fillText(object.band,p.x+offset,p.y+10);if(selected||hovered){ctx.beginPath();ctx.strokeStyle=object.accent;ctx.globalAlpha=.55*alpha;ctx.arc(p.x,p.y,8+object.size*state.zoom*.08,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;}}
+
+    function drawObjects(){const visible=objects.map(object=>({object,opacity:objectOpacity(object)})).filter(item=>item.opacity>.015).sort((a,b)=>a.object.size-b.object.size);visible.forEach(({object,opacity})=>{if(object.type==='group')drawGroup(object,opacity);if(object.type==='galaxy-cluster')drawGalaxyCluster(object,opacity);if(object.type==='galaxy')drawGalaxy(object,opacity);if(object.type==='nebula')drawNebula(object,opacity);if(object.type==='cluster')drawStarCluster(object,opacity);if(object.type==='constellation')drawConstellation(object,opacity);});visible.forEach(({object,opacity})=>drawLabel(object,opacity));}
+
+    function currentLevel(){let best=levels[0],distance=Infinity;for(const level of levels){const d=Math.abs(Math.log(state.zoom)-Math.log(level.zoom));if(d<distance){distance=d;best=level;}}return best;}
+
+    function updateHud(){const level=currentLevel();if(levelLabel)levelLabel.textContent=level.label;if(miniScale)miniScale.textContent=level.label;if(zoomLabel)zoomLabel.textContent=`${state.zoom.toFixed(2)}×`;const px=Math.round(state.cameraX),py=Math.round(state.cameraY);if(positionLabel)positionLabel.textContent=`${px>=0?'+':'−'}${String(Math.abs(px)).padStart(3,'0')} / ${py>=0?'+':'−'}${String(Math.abs(py)).padStart(3,'0')}`;const min=Math.log(.14),max=Math.log(7.5),t=clamp((Math.log(state.zoom)-min)/(max-min),0,1);if(scaleMarker)scaleMarker.style.top=`${(1-t)*100}%`;levelButtons.forEach(button=>{const index=Number(button.dataset.level||0);button.classList.toggle('active',levels[index]?.label===level.label);});}
+
+    function drawMiniMap(){if(!miniCtx||!miniMap)return;const w=miniMap.width,h=miniMap.height;miniCtx.clearRect(0,0,w,h);miniCtx.fillStyle='rgba(3,8,18,.82)';miniCtx.fillRect(0,0,w,h);const scale=.095,cx=w/2,cy=h/2;objects.filter(o=>['galaxy','group','galaxy-cluster'].includes(o.type)).forEach(object=>{const x=cx+object.x*scale,y=cy+object.y*scale;miniCtx.beginPath();miniCtx.fillStyle=object.type==='galaxy-cluster'?'rgba(229,188,255,.58)':object.type==='group'?'rgba(116,166,255,.38)':'rgba(201,225,255,.7)';miniCtx.arc(x,y,object.type==='galaxy-cluster'?2.4:1.7,0,Math.PI*2);miniCtx.fill();});const viewW=state.width/state.zoom*scale,viewH=state.height/state.zoom*scale,vx=cx+state.cameraX*scale-viewW/2,vy=cy+state.cameraY*scale-viewH/2;miniCtx.strokeStyle='rgba(161,207,255,.72)';miniCtx.lineWidth=1;miniCtx.strokeRect(vx,vy,viewW,viewH);miniCtx.beginPath();miniCtx.fillStyle='rgba(220,240,255,.9)';miniCtx.arc(cx+state.cameraX*scale,cy+state.cameraY*scale,1.8,0,Math.PI*2);miniCtx.fill();}
+
+    function render(now:number){if(!ctx)return;state.time=now;const ease=reducedMotion?1:.11;state.cameraX=lerp(state.cameraX,state.targetCameraX,ease);state.cameraY=lerp(state.cameraY,state.targetCameraY,ease);state.zoom=lerp(state.zoom,state.targetZoom,reducedMotion?1:.1);ctx.clearRect(0,0,state.width,state.height);drawBackgroundStars();drawDust();drawObjects();updateHud();drawMiniMap();requestAnimationFrame(render);}
+
+    function zoomAt(clientX:number,clientY:number,factor:number){const before=screenToWorld(clientX,clientY),next=clamp(state.targetZoom*factor,.14,7.5);state.targetZoom=next;const afterX=state.targetCameraX+(clientX-state.width*.5)/next,afterY=state.targetCameraY+(clientY-state.height*.5)/next;state.targetCameraX+=before.x-afterX;state.targetCameraY+=before.y-afterY;state.targetCameraX=clamp(state.targetCameraX,-980,980);state.targetCameraY=clamp(state.targetCameraY,-760,760);note?.classList.add('hidden');}
+
+    function nearestObject(clientX:number,clientY:number){let nearest:AtlasObject|null=null,distance=42;for(const object of objects){const opacity=objectOpacity(object);if(opacity<.18)continue;const p=worldToScreen(object.x,object.y),d=Math.hypot(clientX-p.x,clientY-p.y),hit=Math.max(24,Math.min(80,object.size*state.zoom*.22));if(d<Math.min(distance,hit)){nearest=object;distance=d;}}return nearest;}
+
+    function updateHover(clientX:number,clientY:number){if(state.dragging||state.pointers.size>1)return;const object=nearestObject(clientX,clientY);state.hoverId=object?.id??'';if(cursorLabel){if(object){cursorLabel.textContent=object.name;cursorLabel.style.transform=`translate3d(${clientX+18}px, ${clientY+18}px, 0)`;cursorLabel.classList.add('show');stage?.classList.add('has-target');}else{cursorLabel.classList.remove('show');stage?.classList.remove('has-target');}}}
+
+    function selectObject(object:AtlasObject){state.selectedId=object.id;if(objectKind)objectKind.textContent=object.band;if(objectName)objectName.textContent=object.name;if(objectDistance)objectDistance.textContent=object.distance;if(objectCopy)objectCopy.textContent=object.copy;if(objectMap)objectMap.textContent=`${object.x>=0?'+':'−'}${Math.abs(object.x)} / ${object.y>=0?'+':'−'}${Math.abs(object.y)}`;if(objectBand)objectBand.textContent=object.band;objectPanel?.classList.add('open');}
+    function resetView(){state.targetCameraX=20;state.targetCameraY=10;state.targetZoom=.95;state.selectedId='';objectPanel?.classList.remove('open');}
+    function focusLevel(index:number){const level=levels[index];if(!level)return;state.targetZoom=level.zoom;if(index<=1){state.targetCameraX=40;state.targetCameraY=0;}if(index===2){state.targetCameraX=80;state.targetCameraY=20;}if(index>=3){state.targetCameraX=-180;state.targetCameraY=40;}intro?.classList.add('gone');state.entered=true;}
+    function pointerDistance(){const points=[...state.pointers.values()];if(points.length<2)return 0;return Math.hypot(points[0].x-points[1].x,points[0].y-points[1].y);}
+
+    canvas?.addEventListener('wheel',event=>{event.preventDefault();zoomAt(event.clientX,event.clientY,Math.exp(-event.deltaY*.0012));intro?.classList.add('gone');state.entered=true;},{passive:false});
+    canvas?.addEventListener('pointerdown',event=>{canvas.setPointerCapture(event.pointerId);state.pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});if(state.pointers.size===1){state.dragging=true;state.dragStartX=event.clientX;state.dragStartY=event.clientY;state.cameraStartX=state.targetCameraX;state.cameraStartY=state.targetCameraY;stage?.classList.add('dragging');}else if(state.pointers.size===2){state.pinchDistance=pointerDistance();state.pinchZoom=state.targetZoom;state.dragging=false;}});
+    canvas?.addEventListener('pointermove',event=>{if(state.pointers.has(event.pointerId))state.pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});if(state.pointers.size===2){const dist=pointerDistance();if(state.pinchDistance>0)state.targetZoom=clamp(state.pinchZoom*(dist/state.pinchDistance),.14,7.5);intro?.classList.add('gone');state.entered=true;return;}if(state.dragging){const dx=(event.clientX-state.dragStartX)/state.targetZoom,dy=(event.clientY-state.dragStartY)/state.targetZoom;state.targetCameraX=clamp(state.cameraStartX-dx,-980,980);state.targetCameraY=clamp(state.cameraStartY-dy,-760,760);note?.classList.add('hidden');intro?.classList.add('gone');state.entered=true;}else updateHover(event.clientX,event.clientY);});
+    function endPointer(event:PointerEvent){const moved=Math.hypot(event.clientX-state.dragStartX,event.clientY-state.dragStartY);state.pointers.delete(event.pointerId);if(state.pointers.size<2)state.pinchDistance=0;if(state.pointers.size===0){if(state.dragging&&moved<7){const object=nearestObject(event.clientX,event.clientY);if(object)selectObject(object);}state.dragging=false;stage?.classList.remove('dragging');}}
+    canvas?.addEventListener('pointerup',endPointer);canvas?.addEventListener('pointercancel',endPointer);canvas?.addEventListener('pointerleave',()=>{if(!state.dragging){state.hoverId='';cursorLabel?.classList.remove('show');stage?.classList.remove('has-target');}});
+    enterButton?.addEventListener('click',()=>{intro?.classList.add('gone');state.targetZoom=1.65;state.targetCameraX=-150;state.targetCameraY=20;state.entered=true;note?.classList.remove('hidden');});
+    resetButton?.addEventListener('click',resetView);zoomInButton?.addEventListener('click',()=>zoomAt(state.width*.5,state.height*.5,1.45));zoomOutButton?.addEventListener('click',()=>zoomAt(state.width*.5,state.height*.5,1/1.45));panelClose?.addEventListener('click',()=>{objectPanel?.classList.remove('open');state.selectedId='';});levelButtons.forEach(button=>button.addEventListener('click',()=>focusLevel(Number(button.dataset.level||0))));window.addEventListener('resize',resize);
+    resize();requestAnimationFrame(render);
+  </script>
+</BaseLayout>
+
+<style>
+  :global(.cosmic-atlas-page) { --bg:#02040a; --text:#edf6ff; --muted:#7b8aa6; --line:rgba(173,205,255,.15); --accent:#a9d8ff; margin:0; overflow:hidden; background:#02040a; color:#edf6ff; }
+  :global(.cosmic-atlas-page .theme-toggle) { right:18px; bottom:18px; opacity:.72; background:rgba(4,8,17,.72); border-color:rgba(174,205,255,.18); }
+  .atlas { position:fixed; inset:0; overflow:hidden; background:radial-gradient(circle at 50% 42%,#09101e 0%,#030711 45%,#010207 100%); user-select:none; }
+  .space { position:absolute; inset:0; width:100%; height:100%; cursor:grab; touch-action:none; }
+  .dragging .space { cursor:grabbing; } .has-target .space { cursor:crosshair; }
+  .vignette { position:absolute; inset:0; pointer-events:none; box-shadow:inset 0 0 180px rgba(0,0,0,.75); z-index:2; }
+  .noise { position:absolute; inset:0; z-index:3; pointer-events:none; opacity:.045; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.4'/%3E%3C/svg%3E"); mix-blend-mode:screen; }
+  .topbar { position:absolute; z-index:10; top:0; left:0; right:0; height:68px; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; padding:0 24px; border-bottom:1px solid rgba(173,205,255,.12); background:linear-gradient(to bottom,rgba(2,5,12,.86),rgba(2,5,12,.18)); backdrop-filter:blur(10px); font-size:.61rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; }
+  .brand { justify-self:start; transition:opacity .2s ease; } .brand:hover { opacity:.62; }
+  .title-lockup { justify-self:center; display:flex; align-items:center; gap:14px; } .title-lockup i { color:#74839f; font-style:normal; font-size:.52rem; letter-spacing:.12em; }
+  .reset { justify-self:end; padding:7px 9px; border:1px solid rgba(173,205,255,.18); background:rgba(9,15,28,.3); color:inherit; font:inherit; letter-spacing:inherit; cursor:pointer; } .reset:hover { background:rgba(173,205,255,.08); }
+  .scale-rail { position:absolute; z-index:9; left:24px; top:100px; width:150px; display:grid; grid-template-columns:8px 1fr; gap:0 12px; color:#6d7e9a; }
+  .rail-caption { grid-column:1/-1; margin-bottom:16px; font-size:.52rem; letter-spacing:.2em; color:#b0bfd4; }
+  .rail-line { grid-row:2/span 5; position:relative; width:1px; height:190px; margin-left:3px; background:linear-gradient(to bottom,rgba(180,211,255,.7),rgba(180,211,255,.08)); }
+  .rail-line::before,.rail-line::after { content:''; position:absolute; left:-2px; width:5px; height:1px; background:rgba(190,220,255,.45); } .rail-line::before{top:0}.rail-line::after{bottom:0}
+  .rail-line i { position:absolute; left:-4px; top:55%; width:9px; height:9px; border:1px solid #cce9ff; border-radius:50%; background:#06101e; box-shadow:0 0 18px rgba(128,197,255,.6); transition:top .18s ease; }
+  .scale-rail button { height:38px; border:0; padding:0; background:none; color:inherit; text-align:left; font-size:.52rem; letter-spacing:.12em; cursor:pointer; transition:color .2s ease,transform .2s ease; } .scale-rail button:hover,.scale-rail button.active { color:#dceeff; transform:translateX(3px); }
+  .hud { position:absolute; z-index:9; left:24px; bottom:24px; display:flex; gap:10px; pointer-events:none; }
+  .hud-block { min-width:125px; padding:9px 11px 8px; border:1px solid rgba(173,205,255,.12); background:rgba(3,8,18,.52); backdrop-filter:blur(12px); }
+  .hud-block span { display:block; color:#657691; font-size:.46rem; letter-spacing:.18em; margin-bottom:5px; } .hud-block strong { font-size:.62rem; letter-spacing:.12em; font-weight:650; color:#dceeff; } .coordinates{min-width:154px}
+  .intro { position:absolute; z-index:8; left:50%; top:50%; width:min(760px,calc(100% - 48px)); transform:translate(-50%,-48%); text-align:center; pointer-events:auto; transition:opacity .6s ease,transform .7s cubic-bezier(.2,.8,.2,1),visibility .6s; }
+  .intro.gone { opacity:0; transform:translate(-50%,-44%) scale(.96); visibility:hidden; pointer-events:none; }
+  .intro::before { content:''; position:absolute; left:50%; top:44%; width:min(82vw,760px); height:min(82vw,760px); transform:translate(-50%,-50%); border:1px solid rgba(144,190,255,.09); border-radius:50%; box-shadow:0 0 120px rgba(55,99,170,.08); pointer-events:none; }
+  .eyebrow { color:#7f9abc; font-size:.55rem; letter-spacing:.24em; margin:0 0 18px; }
+  h1 { position:relative; margin:0; color:#edf7ff; font-size:clamp(3.4rem,8.7vw,8.8rem); line-height:.76; letter-spacing:-.065em; font-weight:560; text-shadow:0 0 60px rgba(140,190,255,.12); }
+  h1 em { color:transparent; -webkit-text-stroke:1px rgba(195,224,255,.72); font-family:Georgia,serif; font-weight:400; }
+  .intro>p:not(.eyebrow) { position:relative; width:min(560px,92%); margin:28px auto 0; color:#8b9bb5; font-size:.83rem; line-height:1.8; }
+  .intro button { position:relative; margin-top:28px; border:0; border-bottom:1px solid rgba(180,215,255,.52); padding:9px 2px; background:none; color:#dceeff; font-size:.58rem; letter-spacing:.18em; cursor:pointer; }
+  .intro button span { display:inline-block; margin-left:7px; transition:transform .25s ease; } .intro button:hover span { transform:translate(4px,4px); }
+  .object-panel { position:absolute; z-index:12; top:92px; right:24px; width:min(330px,calc(100% - 48px)); padding:20px 20px 18px; border:1px solid rgba(174,207,255,.14); background:rgba(3,8,18,.76); backdrop-filter:blur(18px); box-shadow:0 24px 80px rgba(0,0,0,.3); opacity:0; transform:translateX(18px); visibility:hidden; transition:.35s ease; }
+  .object-panel.open { opacity:1; transform:translateX(0); visibility:visible; }
+  .panel-close { position:absolute; right:13px; top:10px; border:0; background:none; color:#7688a5; font-size:1.1rem; cursor:pointer; }
+  .object-kind { display:block; color:#87a3c5; font-size:.49rem; letter-spacing:.18em; margin-bottom:9px; }
+  .object-panel h2 { margin:0; max-width:90%; font-size:1.55rem; letter-spacing:-.045em; font-weight:560; color:#eff7ff; }
+  .object-distance { margin:7px 0 16px; color:#c0d9f2; font-size:.69rem; } .object-copy { margin:0; color:#8798b3; font-size:.78rem; line-height:1.7; }
+  .object-panel dl { margin:19px 0 0; padding-top:13px; border-top:1px solid rgba(173,205,255,.11); display:grid; grid-template-columns:1fr 1fr; gap:12px; } .object-panel dl div{margin:0}.object-panel dt{color:#596b87;font-size:.43rem;letter-spacing:.15em}.object-panel dd{margin:5px 0 0;color:#b9cce2;font-size:.58rem;letter-spacing:.09em}
+  .zoom-controls { position:absolute; z-index:10; right:24px; bottom:170px; display:grid; gap:6px; } .zoom-controls button { width:34px; height:34px; border:1px solid rgba(173,205,255,.14); background:rgba(3,8,18,.58); color:#dceeff; font-size:1rem; cursor:pointer; backdrop-filter:blur(10px); } .zoom-controls button:hover{background:rgba(173,205,255,.09)}
+  .mini-map-wrap { position:absolute; z-index:9; right:24px; bottom:24px; width:220px; border:1px solid rgba(173,205,255,.13); background:rgba(3,8,18,.68); backdrop-filter:blur(12px); }
+  .mini-head { height:28px; display:flex; align-items:center; justify-content:space-between; padding:0 9px; border-bottom:1px solid rgba(173,205,255,.1); font-size:.46rem; letter-spacing:.14em; color:#8192ad; } .mini-head i{font-style:normal;color:#b8cce4} #miniMap{width:220px;height:128px}
+  .interaction-note { position:absolute; z-index:9; left:50%; bottom:28px; transform:translateX(-50%); display:flex; align-items:center; gap:10px; color:#687b99; font-size:.48rem; line-height:1.45; letter-spacing:.13em; pointer-events:none; transition:opacity .4s ease; } .interaction-note.hidden{opacity:0}
+  .mouse-icon { width:17px; height:25px; border:1px solid #6d82a3; border-radius:9px; position:relative; } .mouse-icon i { position:absolute; left:7px; top:5px; width:1px; height:6px; background:#9cb9dc; animation:wheelMove 1.8s ease-in-out infinite; }
+  @keyframes wheelMove { 0%,100%{transform:translateY(0);opacity:.4}45%{transform:translateY(5px);opacity:1} }
+  .cursor-label { position:fixed; z-index:15; left:0; top:0; padding:5px 7px; background:rgba(3,9,20,.78); border:1px solid rgba(183,218,255,.14); color:#cde7ff; font-size:.49rem; letter-spacing:.1em; opacity:0; pointer-events:none; white-space:nowrap; transition:opacity .15s ease; } .cursor-label.show{opacity:1}
+  @media(max-width:820px){.topbar{padding:0 16px;height:58px;grid-template-columns:1fr auto}.title-lockup{justify-self:end}.title-lockup i,.reset{display:none}.scale-rail{left:16px;top:80px;width:122px}.scale-rail button{font-size:.44rem}.hud{left:16px;bottom:16px;display:grid;grid-template-columns:1fr 1fr;gap:6px}.hud-block{min-width:0;width:126px}.coordinates{grid-column:1/-1;width:258px}.mini-map-wrap{display:none}.zoom-controls{right:16px;bottom:84px}.object-panel{top:76px;right:16px}.interaction-note{display:none}h1{font-size:clamp(3.1rem,14vw,6.4rem)}}
+  @media(max-width:520px){.scale-rail{top:72px}.rail-caption,.scale-rail button{opacity:.82}.rail-line{height:160px}.scale-rail button{height:32px;max-width:104px}.intro{top:48%}.intro>p:not(.eyebrow){font-size:.76rem}.hud-block:nth-child(1){display:none}.coordinates{grid-column:auto;width:160px}.hud-block.coordinates{min-width:160px}.hud{grid-template-columns:160px 86px}.hud-block{width:auto}.object-panel{left:16px;right:16px;width:auto;top:auto;bottom:92px}}
+  @media(prefers-reduced-motion:reduce){.mouse-icon i{animation:none}.intro,.object-panel,.rail-line i{transition:none}}
+</style>
