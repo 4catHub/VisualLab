@@ -47,5 +47,13 @@ export const galleryPages: GalleryPage[] = [
     category: 'Spatial Atlas',
     status: 'live',
     href: '/showcase/cosmic-atlas/'
+  },
+  {
+    slug: 'resonance',
+    title: 'Resonance',
+    description: 'PC의 시스템 오디오와 모바일의 마이크 입력을 빛의 막, 파형, 입자와 맥동으로 번역하는 실시간 사운드 비주얼라이저.',
+    category: 'Audio Reactive',
+    status: 'live',
+    href: '/showcase/resonance/'
   }
 ];
