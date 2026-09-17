@@ -1,0 +1,195 @@
+---
+interface Props {
+  pageClass: string;
+}
+
+const { pageClass } = Astro.props;
+
+const notes = {
+  'afterimage-page': {
+    title: 'Afterimage',
+    category: 'Kinetic Type',
+    summary: '포인터의 움직임과 팔레트 변화가 타이포그래피의 위치, 색, 잔상을 조금씩 어긋나게 만드는 키네틱 타입 실험입니다.',
+    detail: '정확히 고정된 한 장면보다 움직인 뒤 남는 인상을 보여주는 데 초점을 둡니다. 화면을 움직이거나 SHIFT를 누르면 같은 글자가 다른 리듬으로 다시 겹쳐집니다.'
+  },
+  'gravity-page': {
+    title: 'Gravity Field',
+    category: 'Interaction',
+    summary: '포인터를 하나의 힘의 중심으로 보고 입자와 타이포그래피가 같은 방향 벡터에 반응하도록 만든 인터랙티브 필드입니다.',
+    detail: '가까운 요소일수록 힘을 더 크게 받고, 극성을 바꾸면 끌림과 밀어냄의 관계가 뒤집힙니다. 움직임 자체가 화면의 구조를 설명하도록 설계했습니다.'
+  },
+  'season-page': {
+    title: 'Season Drift',
+    category: 'Ambient Scene',
+    summary: '늦여름에서 초가을로 넘어가는 짧은 시간을 빛의 높이, 바람, 낙엽, 수면의 변화로 표현한 느린 장면입니다.',
+    detail: '머무는 시간이 길수록 화면의 색과 움직임이 조금씩 달라집니다. 수면을 누르면 잔물결이 생기고, 포인터의 위치는 바람의 방향에 미세하게 영향을 줍니다.'
+  },
+  'pixel-mirage-page': {
+    title: 'Pixel Mirage',
+    category: 'Optical Illusion',
+    summary: '픽셀 격자, 모아레 패턴, 제한된 색 분리를 겹쳐 보는 거리와 포인터 위치에 따라 인상이 달라지는 착시 실험입니다.',
+    detail: '정교한 이미지를 보여주기보다 낮은 해상도와 반복이 눈에 만드는 오류를 활용합니다. 모드를 바꾸거나 천천히 초점을 옮기면 같은 격자가 다른 깊이와 움직임으로 읽힙니다.'
+  },
+  'cosmic-atlas-page': {
+    title: 'Cosmic Atlas',
+    category: 'Spatial Atlas',
+    summary: '별자리에서 성운·성단, 은하, 은하군, 은하단까지 서로 다른 관측 규모를 한 화면에서 이동하며 살펴보는 인터랙티브 우주 지도입니다.',
+    detail: '44개의 천체와 영역을 상대적인 탐색 공간에 배치했습니다. 실제 우주의 물리적 거리나 축척을 그대로 재현한 학술 지도는 아니며, 규모가 달라질 때 정보의 밀도와 읽는 방식이 어떻게 바뀌는지를 보여주는 시각화입니다.'
+  },
+  'resonance-page': {
+    title: 'Resonance',
+    category: 'Audio Reactive',
+    summary: 'PC에서는 공유한 시스템 오디오를, 모바일에서는 허용한 마이크 입력을 분석해 음량과 주파수 대역을 빛과 파동, 입자로 변환합니다.',
+    detail: '입력 오디오는 브라우저의 Web Audio 분석기에 연결되어 실시간 시각화에만 사용됩니다. VisualLab은 이 실험을 위해 오디오 내용을 녹음하거나 별도 서버로 전송하지 않습니다.'
+  }
+} as const;
+
+const note = notes[pageClass as keyof typeof notes];
+---
+
+{note && (
+  <details class="experiment-note">
+    <summary aria-label={`${note.title} 설명 열기`}>
+      <span>INFO</span>
+    </summary>
+    <aside class="experiment-note__panel" aria-label={`${note.title} experiment note`}>
+      <div class="experiment-note__head">
+        <span>{note.category}</span>
+        <strong>{note.title}</strong>
+      </div>
+      <p>{note.summary}</p>
+      <p>{note.detail}</p>
+      <nav aria-label="Site links">
+        <a href="/">Index</a>
+        <a href="/privacy/">Privacy</a>
+      </nav>
+    </aside>
+  </details>
+)}
+
+<style>
+  .experiment-note {
+    position: fixed;
+    z-index: 980;
+    top: 50%;
+    right: clamp(12px, 1.8vw, 24px);
+    width: 38px;
+    color: #f2f5fb;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    transform: translateY(-50%);
+  }
+
+  .experiment-note summary {
+    width: 38px;
+    height: 78px;
+    display: grid;
+    place-items: center;
+    list-style: none;
+    border: 1px solid rgba(235, 242, 255, .18);
+    border-radius: 999px;
+    background: rgba(7, 9, 14, .58);
+    box-shadow: 0 10px 34px rgba(0, 0, 0, .16);
+    backdrop-filter: blur(14px) saturate(115%);
+    cursor: pointer;
+    opacity: .7;
+    transition: opacity .2s ease, background .2s ease, transform .2s ease;
+  }
+
+  .experiment-note summary::-webkit-details-marker { display: none; }
+  .experiment-note summary:hover,
+  .experiment-note summary:focus-visible,
+  .experiment-note[open] summary {
+    opacity: 1;
+    background: rgba(7, 9, 14, .88);
+  }
+  .experiment-note summary:focus-visible { outline: 2px solid rgba(210, 226, 255, .74); outline-offset: 3px; }
+  .experiment-note summary span {
+    writing-mode: vertical-rl;
+    color: rgba(242, 247, 255, .9);
+    font-size: .51rem;
+    font-weight: 760;
+    letter-spacing: .2em;
+  }
+
+  .experiment-note__panel {
+    position: absolute;
+    top: 50%;
+    right: 50px;
+    width: min(350px, calc(100vw - 84px));
+    padding: 20px 20px 17px;
+    border: 1px solid rgba(232, 240, 255, .16);
+    background: rgba(7, 9, 14, .9);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, .28);
+    backdrop-filter: blur(22px) saturate(118%);
+    transform: translateY(-50%);
+  }
+
+  .experiment-note__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(232, 240, 255, .12);
+  }
+  .experiment-note__head span {
+    color: rgba(218, 228, 246, .48);
+    font-size: .52rem;
+    font-weight: 680;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+  }
+  .experiment-note__head strong {
+    color: #f4f7fc;
+    font-size: .78rem;
+    font-weight: 620;
+    letter-spacing: -.01em;
+  }
+  .experiment-note__panel p {
+    margin: 14px 0 0;
+    color: rgba(226, 234, 248, .69);
+    font-size: .73rem;
+    line-height: 1.75;
+    word-break: keep-all;
+  }
+  .experiment-note__panel nav {
+    margin-top: 17px;
+    padding-top: 13px;
+    display: flex;
+    gap: 16px;
+    border-top: 1px solid rgba(232, 240, 255, .1);
+  }
+  .experiment-note__panel a {
+    color: rgba(240, 245, 255, .72);
+    font-size: .55rem;
+    font-weight: 720;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+  }
+  .experiment-note__panel a:hover,
+  .experiment-note__panel a:focus-visible { color: #fff; }
+
+  @media (max-width: 700px) {
+    .experiment-note {
+      top: auto;
+      right: 12px;
+      bottom: 86px;
+      transform: none;
+    }
+    .experiment-note summary { width: 36px; height: 64px; }
+    .experiment-note__panel {
+      top: auto;
+      right: 0;
+      bottom: 0;
+      width: min(330px, calc(100vw - 24px));
+      transform: none;
+    }
+  }
+
+  :global(.resonance-page) .experiment-note { z-index: 30; }
+  :global(.cosmic-atlas-page) .experiment-note { z-index: 30; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .experiment-note summary { transition: none; }
+  }
+</style>
