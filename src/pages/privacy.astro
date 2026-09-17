@@ -1,0 +1,144 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Privacy — VisualLab"
+  description="VisualLab 개인정보처리방침과 브라우저 저장소, 오디오 권한, 광고 및 쿠키 사용에 대한 안내."
+  className="privacy-page"
+>
+  <main class="privacy-shell">
+    <header class="privacy-topbar">
+      <a href="/" class="brand">VisualLab</a>
+      <span>PRIVACY / POLICY</span>
+    </header>
+
+    <article class="policy">
+      <header class="policy-intro">
+        <p class="eyebrow">Privacy at VisualLab</p>
+        <h1>개인정보<br /><i>처리방침.</i></h1>
+        <p class="intro-copy">VisualLab은 웹 기반 시각 실험을 제공하는 사이트입니다. 이 문서는 사이트가 사용하는 브라우저 기능과 권한, 향후 광고가 제공되는 경우의 데이터 처리 방식을 설명합니다.</p>
+        <p class="effective">시행일 · 2026.09.17</p>
+      </header>
+
+      <div class="policy-grid">
+        <nav class="toc" aria-label="Privacy policy sections">
+          <span>CONTENTS</span>
+          <a href="#collection">01 · 수집하는 정보</a>
+          <a href="#storage">02 · 브라우저 저장소</a>
+          <a href="#audio">03 · 오디오 권한</a>
+          <a href="#ads">04 · 광고와 쿠키</a>
+          <a href="#third-parties">05 · 제3자 서비스</a>
+          <a href="#choices">06 · 이용자의 선택</a>
+          <a href="#changes">07 · 방침 변경</a>
+        </nav>
+
+        <div class="policy-copy">
+          <section id="collection">
+            <span class="section-no">01</span>
+            <h2>수집하는 정보</h2>
+            <p>VisualLab의 자체 인터랙티브 기능은 회원가입이나 사용자 프로필을 요구하지 않습니다. 현재 사이트의 시각 실험을 이용하기 위해 이름, 이메일 주소, 전화번호와 같은 직접 식별 정보를 입력할 필요가 없습니다.</p>
+            <p>다만 사이트가 호스팅되는 서버 또는 향후 연결되는 외부 서비스는 정상적인 웹 요청 처리 과정에서 IP 주소, 브라우저 및 기기 정보, 요청 시각, 방문 페이지와 같은 기술 정보를 처리할 수 있습니다. 이러한 정보의 범위와 보관 방식은 해당 서비스 제공자의 정책에 따라 달라질 수 있습니다.</p>
+          </section>
+
+          <section id="storage">
+            <span class="section-no">02</span>
+            <h2>브라우저 저장소</h2>
+            <p>VisualLab은 사용자가 선택한 화면 테마를 유지하기 위해 브라우저의 <code>localStorage</code>에 <code>visual-lab-theme</code> 값을 저장합니다. 이 값은 밝은 모드 또는 어두운 모드 선택을 기억하기 위한 용도이며, 사용자를 직접 식별하는 정보는 포함하지 않습니다.</p>
+            <p>브라우저 설정에서 사이트 데이터 또는 로컬 저장소를 삭제하면 이 설정도 함께 삭제됩니다.</p>
+          </section>
+
+          <section id="audio">
+            <span class="section-no">03</span>
+            <h2>Resonance의 오디오 권한</h2>
+            <p>Resonance 실험은 사용자가 직접 연결 버튼을 누른 경우에만 오디오 접근 권한을 요청합니다. 모바일 환경에서는 마이크 입력을, 지원되는 데스크톱 환경에서는 사용자가 화면 공유 창에서 허용한 시스템 또는 탭 오디오를 사용할 수 있습니다.</p>
+            <p>허용된 오디오는 브라우저의 Web Audio API를 통해 실시간으로 분석되어 음량과 주파수 대역을 시각 효과로 변환합니다. VisualLab의 현재 구현은 이 오디오 내용을 녹음하거나 파일로 저장하지 않으며, 시각화를 위해 별도 서버로 전송하지 않습니다. 연결 해제 또는 공유 종료 시 해당 미디어 트랙의 사용도 종료됩니다.</p>
+          </section>
+
+          <section id="ads">
+            <span class="section-no">04</span>
+            <h2>광고, 쿠키 및 Google AdSense</h2>
+            <p>VisualLab에 Google AdSense 또는 기타 광고 서비스가 활성화되는 경우, Google을 포함한 제3자 광고 사업자가 광고 제공, 광고 빈도 제한, 성과 측정 및 관련 기능을 위해 쿠키나 유사 기술을 사용할 수 있습니다.</p>
+            <p>Google은 광고 쿠키를 이용해 사용자의 이 사이트 또는 다른 사이트 방문 정보를 바탕으로 광고를 제공할 수 있습니다. 사용자는 Google의 광고 설정에서 맞춤 광고와 관련된 선택을 관리할 수 있습니다. 지역에 따라 광고 및 쿠키 사용 전에 별도의 동의 인터페이스가 표시될 수 있습니다.</p>
+            <p>광고가 실제로 활성화되기 전에는 이 섹션의 일부 기술이 사이트에서 사용되지 않을 수 있습니다. 광고 서비스가 추가되거나 처리 방식이 변경되면 본 방침도 실제 운영 상태에 맞게 갱신합니다.</p>
+          </section>
+
+          <section id="third-parties">
+            <span class="section-no">05</span>
+            <h2>제3자 서비스와 외부 링크</h2>
+            <p>사이트 운영 과정에서 호스팅, 콘텐츠 전송, 광고 또는 통계와 같은 제3자 서비스가 사용될 수 있습니다. 이러한 사업자가 자체적으로 처리하는 데이터에는 각 사업자의 개인정보처리방침과 이용 조건이 적용됩니다.</p>
+            <p>VisualLab에서 외부 웹사이트로 이동한 이후의 데이터 처리에는 해당 외부 사이트의 정책이 적용됩니다.</p>
+          </section>
+
+          <section id="choices">
+            <span class="section-no">06</span>
+            <h2>이용자의 선택과 제어</h2>
+            <p>마이크 또는 화면·오디오 공유 권한은 브라우저의 사이트 권한 설정에서 허용하거나 철회할 수 있습니다. 로컬에 저장된 테마 값은 브라우저의 사이트 데이터 삭제 기능으로 제거할 수 있습니다.</p>
+            <p>광고가 활성화된 경우 쿠키 차단, 브라우저 개인정보 보호 설정, Google 광고 설정 및 지역별 동의 관리 화면을 통해 광고 데이터 사용에 관한 선택을 변경할 수 있습니다.</p>
+          </section>
+
+          <section id="changes">
+            <span class="section-no">07</span>
+            <h2>방침의 변경</h2>
+            <p>새로운 실험, 분석 도구, 광고 또는 외부 서비스가 추가되어 데이터 처리 방식이 달라지는 경우 이 페이지를 수정할 수 있습니다. 중요한 변경이 있는 경우 이 페이지의 내용과 시행일을 함께 갱신합니다.</p>
+          </section>
+        </div>
+      </div>
+    </article>
+
+    <footer class="privacy-footer">
+      <a href="/">← Index</a>
+      <span>VisualLab · Privacy</span>
+    </footer>
+  </main>
+</BaseLayout>
+
+<style>
+  :global(.privacy-page) { background: #f0eee8; color: #151515; }
+  .privacy-shell { width: min(calc(100% - 40px), 1180px); margin: 0 auto; }
+  .privacy-topbar {
+    height: 84px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+  }
+  .brand { font-size: .94rem; font-weight: 800; letter-spacing: -.035em; }
+  .privacy-topbar > span,
+  .effective,
+  .toc,
+  .privacy-footer { font-size: .61rem; letter-spacing: .14em; text-transform: uppercase; }
+  .privacy-topbar > span { color: color-mix(in srgb, currentColor 48%, transparent); }
+
+  .policy-intro { padding: clamp(74px, 10vw, 132px) 0 clamp(70px, 9vw, 118px); border-bottom: 1px solid color-mix(in srgb, currentColor 14%, transparent); }
+  .eyebrow { margin: 0 0 24px; color: var(--accent-2); }
+  h1 { margin: 0; font-size: clamp(4rem, 9vw, 8.5rem); line-height: .76; letter-spacing: -.075em; font-weight: 760; }
+  h1 i { font-family: Georgia, serif; font-weight: 400; color: var(--accent); }
+  .intro-copy { max-width: 650px; margin: 40px 0 0; color: color-mix(in srgb, currentColor 60%, transparent); font-size: clamp(.9rem, 1.2vw, 1.03rem); line-height: 1.9; word-break: keep-all; }
+  .effective { margin: 30px 0 0; color: color-mix(in srgb, currentColor 42%, transparent); }
+
+  .policy-grid { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: clamp(48px, 8vw, 120px); align-items: start; }
+  .toc { position: sticky; top: 28px; padding: 48px 0; display: grid; gap: 16px; color: color-mix(in srgb, currentColor 48%, transparent); }
+  .toc > span { margin-bottom: 9px; color: currentColor; font-weight: 800; }
+  .toc a { line-height: 1.45; transition: color .2s ease, transform .2s ease; }
+  .toc a:hover, .toc a:focus-visible { color: var(--accent); transform: translateX(4px); }
+
+  .policy-copy section { position: relative; padding: 52px 0 58px; border-bottom: 1px solid color-mix(in srgb, currentColor 12%, transparent); }
+  .section-no { display: block; margin-bottom: 18px; color: var(--accent); font-size: .62rem; font-weight: 760; letter-spacing: .14em; }
+  h2 { margin: 0 0 26px; font-size: clamp(1.8rem, 3vw, 2.7rem); font-weight: 630; letter-spacing: -.045em; }
+  .policy-copy p { max-width: 760px; margin: 0 0 16px; color: color-mix(in srgb, currentColor 67%, transparent); font-size: .91rem; line-height: 1.95; word-break: keep-all; }
+  code { padding: .12em .38em; border-radius: 4px; background: color-mix(in srgb, currentColor 7%, transparent); color: currentColor; font-size: .84em; }
+
+  .privacy-footer { min-height: 108px; display: flex; align-items: center; justify-content: space-between; color: color-mix(in srgb, currentColor 46%, transparent); }
+  .privacy-footer a:hover { color: currentColor; }
+
+  @media (max-width: 720px) {
+    .privacy-shell { width: min(calc(100% - 28px), 1180px); }
+    .privacy-topbar { height: 70px; }
+    .policy-intro { padding-top: 64px; }
+    .policy-grid { grid-template-columns: 1fr; gap: 0; }
+    .toc { position: static; padding: 28px 0; grid-template-columns: 1fr 1fr; border-bottom: 1px solid color-mix(in srgb, currentColor 12%, transparent); }
+    .toc > span { grid-column: 1 / -1; }
+    .policy-copy section { padding: 42px 0 46px; }
+  }
+</style>
