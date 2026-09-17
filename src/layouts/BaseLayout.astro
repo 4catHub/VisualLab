@@ -49,6 +49,7 @@ const isExperiment = experimentClasses.includes(className);
     <slot />
 
     {isExperiment && <ExperimentNote pageClass={className} />}
+    {className.includes('home-page') && <a class="home-privacy-link" href="/privacy/">Privacy</a>}
 
     {className.includes('gravity-page') && (
       <footer class="gravity-index-footer shell">
@@ -132,5 +133,26 @@ const isExperiment = experimentClasses.includes(className);
         }
       })();
     </script>
+
+    <style is:global>
+      .home-privacy-link {
+        position: absolute;
+        z-index: 20;
+        left: 50%;
+        bottom: 42px;
+        color: color-mix(in srgb, currentColor 48%, transparent);
+        font-size: .58rem;
+        font-weight: 650;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        transform: translateX(-50%);
+        transition: color .2s ease;
+      }
+      .home-privacy-link:hover,
+      .home-privacy-link:focus-visible { color: currentColor; }
+      @media (max-width: 640px) {
+        .home-privacy-link { bottom: 24px; }
+      }
+    </style>
   </body>
 </html>
