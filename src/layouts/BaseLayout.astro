@@ -1,5 +1,6 @@
 ---
 import '@/styles/global.css';
+import ExperimentNote from '@/components/ExperimentNote.astro';
 
 interface Props {
   title: string;
@@ -12,6 +13,16 @@ const {
   description = 'A collection of crafted visual experiments.',
   className = ''
 } = Astro.props;
+
+const experimentClasses = [
+  'afterimage-page',
+  'gravity-page',
+  'season-page',
+  'pixel-mirage-page',
+  'cosmic-atlas-page',
+  'resonance-page'
+];
+const isExperiment = experimentClasses.includes(className);
 ---
 <!doctype html>
 <html lang="ko" data-theme="light">
@@ -36,6 +47,8 @@ const {
   </head>
   <body class={className}>
     <slot />
+
+    {isExperiment && <ExperimentNote pageClass={className} />}
 
     {className.includes('gravity-page') && (
       <footer class="gravity-index-footer shell">
