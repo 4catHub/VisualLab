@@ -2,7 +2,7 @@
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import { galleryPages } from '@/data/pages';
 ---
-<BaseLayout title="VisualLab" description="A small collection of visual experiments, motion studies, and interactive scenes." className="home-page">
+<BaseLayout title="VisualLab" description="웹의 빛, 움직임, 공간과 반응을 탐색하는 시각 실험 아카이브." className="home-page">
   <main class="home" id="homeStage">
     <div class="ambient" aria-hidden="true">
       <div class="wash wash-a"></div>
@@ -39,6 +39,15 @@ import { galleryPages } from '@/data/pages';
           </a>
         ))}
       </nav>
+
+      <section class="statement" aria-labelledby="statement-title">
+        <p class="statement-label">VisualLab / Ongoing archive</p>
+        <h2 id="statement-title">보이는 것과<br /><i>느껴지는 것</i> 사이.</h2>
+        <div class="statement-copy">
+          <p>VisualLab은 웹이라는 화면 안에서 빛과 색, 움직임과 공간, 소리와 반응이 만들어내는 순간을 모읍니다.</p>
+          <p>정해진 형식이나 완성된 목록을 두지 않습니다. 보고, 움직이고, 머무는 동안 감각이 조금 달라지는 장면들을 계속해서 쌓아갑니다.</p>
+        </div>
+      </section>
 
       <footer>
         <span>VisualLab</span>
@@ -313,11 +322,31 @@ import { galleryPages } from '@/data/pages';
   .arrow { font-size: .95rem; transition: transform .3s ease; }
   .experiment:hover .arrow, .experiment:focus-visible .arrow { transform: translate(4px,-4px) rotate(5deg); }
 
+  .statement {
+    padding: clamp(110px, 15vw, 190px) 0 clamp(100px, 13vw, 160px);
+    display: grid;
+    grid-template-columns: minmax(140px, .45fr) 1.25fr .85fr;
+    gap: clamp(28px, 5vw, 76px);
+    align-items: start;
+    border-bottom: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+  }
+  .statement-label { margin: 8px 0 0; color: color-mix(in srgb, currentColor 42%, transparent); font-size: .58rem; font-weight: 700; letter-spacing: .15em; line-height: 1.6; text-transform: uppercase; }
+  .statement h2 { margin: 0; font-size: clamp(2.9rem, 5.8vw, 6rem); line-height: .92; letter-spacing: -.065em; font-weight: 700; }
+  .statement h2 i { font-family: Georgia, serif; font-weight: 400; color: var(--a); transition: color .55s ease; }
+  .statement-copy { padding-top: 7px; }
+  .statement-copy p { margin: 0; color: color-mix(in srgb, currentColor 58%, transparent); font-size: clamp(.92rem, 1.15vw, 1.05rem); line-height: 1.9; word-break: keep-all; }
+  .statement-copy p + p { margin-top: 24px; }
+
   footer { margin-top: auto; min-height: 100px; display: flex; align-items: center; justify-content: space-between; }
+
+  @media(max-width:900px){
+    .statement{grid-template-columns:1fr 1fr}.statement-label{grid-column:1/-1}.statement-copy{padding-top:2px}
+  }
 
   @media(max-width:640px){
     .experiment{grid-template-columns:44px 1fr 28px;gap:12px}.category{display:none}.intro>p:last-child{max-width:340px}
     .grid-plane{width:120vw;left:-10vw}.type-v{left:-16vw}.type-l{right:-12vw}.active-index{right:-4vw}
+    .statement{grid-template-columns:1fr;padding:92px 0 88px;gap:34px}.statement-label{grid-column:auto;margin:0}.statement h2{font-size:clamp(2.8rem,13vw,4.5rem)}.statement-copy{max-width:430px}.statement-copy p + p{margin-top:18px}
   }
 
   @media(prefers-reduced-motion:reduce){
