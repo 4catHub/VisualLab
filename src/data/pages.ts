@@ -55,5 +55,13 @@ export const galleryPages: GalleryPage[] = [
     category: 'Audio Reactive',
     status: 'live',
     href: '/showcase/resonance/'
+  },
+  {
+    slug: 'intent-machine',
+    title: 'Intent Machine',
+    description: 'EXPLORE, FOCUS, COMPARE, PLAY 같은 사용자의 의도에 따라 화면의 구조 자체가 생성되고 해체되는 ZERO UI 실험.',
+    category: 'Generative UI',
+    status: 'live',
+    href: '/showcase/intent-machine/'
   }
 ];
