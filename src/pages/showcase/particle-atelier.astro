@@ -18,8 +18,8 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
       <div class="sidebar-note">SELECT TO PREVIEW <span>＋ TO LAYER</span></div>
     </aside>
     <section class="stage-section" aria-label="실시간 파티클 미리보기">
-      <div class="stage-top"><div><span class="stage-dot"></span><b>LIVE CANVAS</b><span class="stage-desc" id="stageDesc">Aurora Drift / Luminous ambient</span></div><div class="stage-stats"><span id="fpsLabel">— FPS</span><span id="particleLabel">0 PARTICLES</span></div></div>
-      <div class="stage" id="stage"><canvas id="particleCanvas" aria-label="인터랙티브 파티클 시뮬레이션" role="img"></canvas><div class="stage-overlay"><span>PARTICLE STUDY / 008</span><span>CANVAS 2D · REAL-TIME</span></div><div class="stage-center-label" id="stageTitle">AURORA DRIFT<span>003 ACTIVE LAYERS</span></div><div class="stage-hint">MOVE TO ATTRACT · CLICK TO BURST</div></div>
+      <div class="stage-top"><div><span class="stage-dot"></span><b>LIVE CANVAS</b><span class="stage-desc" id="stageDesc">Minimal / lightweight</span></div><div class="stage-stats"><span id="fpsLabel">— FPS</span><span id="particleLabel">0 PARTICLES</span></div></div>
+      <div class="stage" id="stage"><canvas id="particleCanvas" aria-label="인터랙티브 파티클 시뮬레이션" role="img"></canvas><div class="stage-overlay"><span>PARTICLE STUDY / 008</span><span>CANVAS 2D · REAL-TIME</span></div><div class="stage-center-label" id="stageTitle">MINIMAL<span>001 ACTIVE LAYER</span></div><div class="stage-hint">MOVE TO ATTRACT · CLICK TO BURST</div></div>
       <div class="transport"><div class="transport-main"><button class="primary-icon" id="playBtn" aria-label="일시정지">Ⅱ</button><button class="icon-btn" id="restartBtn" aria-label="다시 시작" title="다시 시작">↻</button><button class="icon-btn" id="burstBtn" aria-label="입자 폭발" title="입자 폭발">✳</button><span class="transport-divider"></span><span class="transport-status" id="playStatus">SIMULATING</span></div><div class="transport-end"><label>TIME SCALE <strong id="timeValue">1.0×</strong><input id="timeScale" type="range" min="20" max="200" value="100" step="5" aria-label="시간 배율"/></label><button class="text-btn" id="fullscreenBtn">EXPAND ↗</button></div></div>
       <section class="mixer"><div class="mixer-heading"><div><span class="overline">02 / COMPOSITION</span><h2>Layer mixer<span class="muted-period">.</span></h2></div><span class="mixer-count" id="layerCount">03 / 06 LAYERS</span></div><div id="layerList" class="layer-list"></div><div class="mixer-actions"><button id="addLayerBtn">＋ ADD AN EFFECT</button><button id="clearBtn">CLEAR ALL</button></div></section>
       <section class="presets"><div class="presets-heading"><span class="overline">CURATED SCENES</span><h2>Start somewhere beautiful.</h2></div><div class="preset-list" id="presetList"></div></section>
@@ -29,15 +29,15 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
       <h2>Shape the motion<span class="muted-period">.</span></h2><div class="inspect-selected"><div class="selected-icon" id="selectedIcon">✦</div><div><span class="inspect-caption">EDITING LAYER</span><strong id="selectedName">Glow Particles</strong></div><span id="selectedNumber" class="selected-number">01</span></div>
       <div class="inspector-scroll">
         <div class="control-group"><h3>EMISSION <span>01</span></h3>
-          <div class="control" data-control="amount"><label>Density <output>75%</output></label><input type="range" min="0" max="100" value="75"/></div>
-          <div class="control" data-control="rate"><label>Spawn rate <output>100%</output></label><input type="range" min="0" max="200" value="100"/></div>
+          <div class="control" data-control="amount"><label>Density <output>75%</output></label><input type="range" min="0" max="100" value="30"/></div>
+          <div class="control" data-control="rate"><label>Spawn rate <output>100%</output></label><input type="range" min="0" max="200" value="35"/></div>
           <div class="control" data-control="life"><label>Lifetime <output>100%</output></label><input type="range" min="10" max="200" value="100"/></div>
           <div class="control"><label for="emitter">Emitter shape</label><select id="emitter"><option value="point">Point</option><option value="line">Line</option><option value="ring">Circle / Ring</option><option value="box">Box / Volume</option><option value="top">Top edge</option><option value="bottom">Bottom edge</option><option value="left">Left edge</option><option value="mask">Text mask</option><option value="path">Pointer path</option></select></div>
         </div>
         <div class="control-group"><h3>APPEARANCE <span>02</span></h3>
           <div class="control" data-control="size"><label>Particle size <output>100%</output></label><input type="range" min="20" max="200" value="100"/></div>
           <div class="control" data-control="opacity"><label>Opacity <output>85%</output></label><input type="range" min="0" max="100" value="85"/></div>
-          <div class="control" data-control="glow"><label>Glow intensity <output>65%</output></label><input type="range" min="0" max="100" value="65"/></div>
+          <div class="control" data-control="glow"><label>Glow intensity <output>65%</output></label><input type="range" min="0" max="100" value="15"/></div>
           <div class="control color-control"><label for="particleColor">Color accent</label><div class="color-input"><input id="particleColor" type="color" value="#91caff"/><code id="colorCode">#91CAFF</code></div></div>
           <div class="control"><label for="blend">Blend mode</label><select id="blend"><option value="lighter">Additive</option><option value="screen">Screen</option><option value="source-over">Normal alpha</option></select></div>
         </div>
@@ -46,13 +46,13 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
           <div class="control" data-control="direction"><label>Direction <output>0°</output></label><input type="range" min="-180" max="180" value="0"/></div>
           <div class="control" data-control="gravity"><label>Gravity <output>0</output></label><input type="range" min="-100" max="100" value="0"/></div>
           <div class="control" data-control="wind"><label>Wind <output>0</output></label><input type="range" min="-100" max="100" value="0"/></div>
-          <div class="control" data-control="turbulence"><label>Turbulence <output>25%</output></label><input type="range" min="0" max="100" value="25"/></div>
+          <div class="control" data-control="turbulence"><label>Turbulence <output>25%</output></label><input type="range" min="0" max="100" value="10"/></div>
         </div>
         <div class="control-group"><h3>INTERACTION <span>04</span></h3>
           <div class="mode-buttons" id="pointerModes"><button class="active" data-pointer="attract">◉ Attract</button><button data-pointer="repel">↗ Repel</button></div>
           <label class="check-label"><input id="loopToggle" type="checkbox" checked/> Loop emission</label>
         </div>
-        <div class="control-group"><h3>PERFORMANCE <span>05</span></h3><div class="control"><label for="quality">Rendering quality</label><select id="quality"><option value="auto">Auto · adaptive</option><option value="low">Low · battery saver</option><option value="high">High · detail</option></select></div><label class="check-label"><input id="seedLock" type="checkbox" checked/> Lock random seed</label><button class="full-btn" id="randomSeedBtn">↻ REGENERATE SEED</button></div>
+        <div class="control-group"><h3>PERFORMANCE <span>05</span></h3><div class="control"><label for="quality">Rendering quality</label><select id="quality"><option value="low">Low · battery saver</option><option value="auto">Auto · adaptive</option><option value="high">High · detail</option></select></div><label class="check-label"><input id="seedLock" type="checkbox" checked/> Lock random seed</label><button class="full-btn" id="randomSeedBtn">↻ REGENERATE SEED</button></div>
       </div>
       <div class="inspector-footer"><button id="resetLayerBtn">RESET LAYER</button><button id="saveBtn" class="accent-button">SAVE PRESET ↗</button></div>
     </aside>
@@ -193,7 +193,7 @@ $('#importFile').addEventListener('change',async e=>{
  try{if(file.size>200000)throw Error('large');const data=JSON.parse(await file.text());engine.load(data);selected=engine.layers[0]?.uid;activePreset='Imported preset';renderAll();notify('프리셋을 불러왔습니다.');}catch{notify('유효한 파티클 JSON 파일이 아닙니다.');}e.target.value='';
 });
 window.addEventListener('pagehide',()=>engine.destroy(),{once:true});
-applyPreset(PRESETS[0]);renderSaved();updatePlay();
+add('twinkle');activePreset='Custom';renderAll();renderSaved();updatePlay();
 </script>
 <style>
 :global(html){scroll-behavior:smooth}

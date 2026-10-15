@@ -85,8 +85,10 @@ export class ParticleEngine {
     this.randomState = this.seed;
     this.lockSeed = true;
     this.playing = !matchMedia('(prefers-reduced-motion: reduce)').matches;
-    this.quality = 'auto';
+    this.quality = 'low';
     this.adaptiveScale = 1;
+    this.targetFps = 30;
+    this.renderAccum = 0;
     this.timeScale = 1;
     this.pointerMode = 'attract';
     this.pointer = {x:0,y:0,active:false,down:false};
@@ -116,7 +118,7 @@ export class ParticleEngine {
   pick(array) {return array[Math.floor(this.rand()*array.length)] || [this.width/2,this.height/2];}
   get cap() {
     const mobile = this.width < 690;
-    const base = this.quality === 'low' ? 500 : this.quality === 'high' ? 2500 : mobile ? 850 : 1700;
+    const base = this.quality === 'low' ? (mobile ? 100 : 180) : this.quality === 'high' ? (mobile ? 750 : 1800) : mobile ? 250 : 500;
     return Math.round(base * this.adaptiveScale);
   }
   resize() {
@@ -125,7 +127,7 @@ export class ParticleEngine {
     if(w===this.width && h===this.height)return;
     const sx = w/this.width,sy=h/this.height;
     this.width=w;this.height=h;
-    this.dpr=Math.min(window.devicePixelRatio||1,this.quality==='low'?1:2);
+    this.dpr=Math.min(window.devicePixelRatio||1,this.quality==='low'?1:1.5);
     this.canvas.width=Math.round(w*this.dpr);
     this.canvas.height=Math.round(h*this.dpr);
     this.canvas.style.width=w+'px';
@@ -157,8 +159,8 @@ export class ParticleEngine {
     if(!def)return null;
     const obj = {
       uid:++this.serial,effectId,
-      color:def.color,amount:75,rate:100,life:100,size:100,speed:100,
-      direction:0,gravity:0,wind:0,turbulence:25,glow:65,opacity:85,
+      color:def.color,amount:30,rate:35,life:100,size:65,speed:100,
+      direction:0,gravity:0,wind:0,turbulence:10,glow:15,opacity:85,
       blend: ['rain','snow','fog','smoke','dust','sandstorm','leaves','debris'].includes(effectId)?'source-over':'lighter',
       emitter:def.emitter,loop:true,enabled:true,
       clock:0,accum:0,burstPending:true
@@ -185,7 +187,7 @@ export class ParticleEngine {
     const enabled=this.layers.filter(l=>l.enabled);
     for(const l of enabled){
       const d=EFFECT_MAP.get(l.effectId);
-      const n=Math.min(65,Math.round(25*l.amount/75));
+      const n=Math.min(25,Math.round(12*l.amount/30));
       for(let k=0;k<n && this.particles.length<this.cap;k++)this.spawn(l,d,x,y,true);
     }
     if(!this.playing)this.draw();
@@ -454,14 +456,19 @@ export class ParticleEngine {
     const dt=Math.min((now-this.lastTime)/1000,.05);
     this.lastTime=now;
     if(document.hidden||!this.playing)return;
-    this.simulate(dt*this.timeScale);
+    this.renderAccum += dt;
+    const frameInterval = 1 / (this.quality === 'high' ? 60 : 30);
+    if (this.renderAccum < frameInterval) return;
+    const elapsed = Math.min(this.renderAccum, .05);
+    this.renderAccum = 0;
+    this.simulate(elapsed*this.timeScale);
     this.draw();
     this.frames++;this.metricTime+=dt;
     if(this.metricTime>=.75){
       this.fps=this.frames/this.metricTime;
-      if(this.quality==='auto'&&this.particles.length>180){
-        if(this.fps<34)this.adaptiveScale=Math.max(.5,this.adaptiveScale-.1);
-        else if(this.fps>54)this.adaptiveScale=Math.min(1,this.adaptiveScale+.035);
+      if(this.quality==='auto'&&this.particles.length>80){
+        if(this.fps<26)this.adaptiveScale=Math.max(.5,this.adaptiveScale-.1);
+        else if(this.fps>29)this.adaptiveScale=Math.min(1,this.adaptiveScale+.035);
       }
       this.onMetrics?.({fps:Math.round(this.fps),particles:this.particles.length,cap:this.cap});
       this.metricTime=0;this.frames=0;
