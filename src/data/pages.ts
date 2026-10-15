@@ -9,6 +9,14 @@ export interface GalleryPage {
 
 export const galleryPages: GalleryPage[] = [
   {
+    slug: 'particle-atelier',
+    title: 'Particle Atelier',
+    description: '48가지 파티클 효과를 실시간으로 조합하고 물리·발광·레이어·프리셋을 직접 조작하는 인터랙티브 VFX 스튜디오.',
+    category: 'Particle Studio',
+    status: 'live',
+    href: '/showcase/particle-atelier/'
+  },
+  {
     slug: 'afterimage',
     title: 'Afterimage',
     description: '색과 타이포그래피가 포인터 움직임 뒤에 잔상처럼 따라오는 키네틱 비주얼 실험.',

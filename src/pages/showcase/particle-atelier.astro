@@ -1,0 +1,218 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+---
+<BaseLayout title="Particle Atelier — VisualLab" description="48 interactive particle effects, layered VFX composition and real-time controls." className="particle-atelier-page">
+<main class="atelier" id="atelier">
+  <header class="topbar">
+    <div class="brand"><a href="/" aria-label="VisualLab 홈으로">← <b>VisualLab</b></a><span class="sep"></span><span>EXPERIMENT 008 / PARTICLE ATELIER</span></div>
+    <div class="status"><span class="live-dot"></span> LIVE SIMULATION <span class="version">V.01</span></div>
+  </header>
+  <section class="heading"><div><span class="overline">THE ART OF MOTION / INTERACTIVE VFX STUDIO</span><h1>Particle <em>Atelier.</em></h1><p>48가지 입자 언어. 하나의 캔버스. 효과를 겹치고, 힘을 조절하고, 나만의 움직임을 설계하세요.</p></div><div class="heading-side"><span>01 — DISCOVER</span><span>02 — COMPOSE</span><span>03 — EXPERIMENT</span></div></section>
+  <div class="workspace">
+    <aside class="library panel" id="library" aria-label="효과 라이브러리">
+      <div class="panel-heading"><span class="overline">01 / EFFECT LIBRARY</span><span id="effectCount">48 EFFECTS</span></div>
+      <h2>Explore effects<span class="muted-period">.</span></h2>
+      <label class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input id="effectSearch" type="search" placeholder="효과 검색..." aria-label="효과 검색"/></label>
+      <nav class="category-nav" aria-label="효과 유형"><button class="active" data-category="All">All <span>48</span></button><button data-category="Nature">Nature <span>12</span></button><button data-category="Light">Light <span>12</span></button><button data-category="Impact">Impact <span>9</span></button><button data-category="Digital">Digital <span>15</span></button></nav>
+      <div class="effect-list" id="effectList" role="list"></div>
+      <div class="sidebar-note">SELECT TO PREVIEW <span>＋ TO LAYER</span></div>
+    </aside>
+    <section class="stage-section" aria-label="실시간 파티클 미리보기">
+      <div class="stage-top"><div><span class="stage-dot"></span><b>LIVE CANVAS</b><span class="stage-desc" id="stageDesc">Aurora Drift / Luminous ambient</span></div><div class="stage-stats"><span id="fpsLabel">— FPS</span><span id="particleLabel">0 PARTICLES</span></div></div>
+      <div class="stage" id="stage"><canvas id="particleCanvas" aria-label="인터랙티브 파티클 시뮬레이션" role="img"></canvas><div class="stage-overlay"><span>PARTICLE STUDY / 008</span><span>CANVAS 2D · REAL-TIME</span></div><div class="stage-center-label" id="stageTitle">AURORA DRIFT<span>003 ACTIVE LAYERS</span></div><div class="stage-hint">MOVE TO ATTRACT · CLICK TO BURST</div></div>
+      <div class="transport"><div class="transport-main"><button class="primary-icon" id="playBtn" aria-label="일시정지">Ⅱ</button><button class="icon-btn" id="restartBtn" aria-label="다시 시작" title="다시 시작">↻</button><button class="icon-btn" id="burstBtn" aria-label="입자 폭발" title="입자 폭발">✳</button><span class="transport-divider"></span><span class="transport-status" id="playStatus">SIMULATING</span></div><div class="transport-end"><label>TIME SCALE <strong id="timeValue">1.0×</strong><input id="timeScale" type="range" min="20" max="200" value="100" step="5" aria-label="시간 배율"/></label><button class="text-btn" id="fullscreenBtn">EXPAND ↗</button></div></div>
+      <section class="mixer"><div class="mixer-heading"><div><span class="overline">02 / COMPOSITION</span><h2>Layer mixer<span class="muted-period">.</span></h2></div><span class="mixer-count" id="layerCount">03 / 06 LAYERS</span></div><div id="layerList" class="layer-list"></div><div class="mixer-actions"><button id="addLayerBtn">＋ ADD AN EFFECT</button><button id="clearBtn">CLEAR ALL</button></div></section>
+      <section class="presets"><div class="presets-heading"><span class="overline">CURATED SCENES</span><h2>Start somewhere beautiful.</h2></div><div class="preset-list" id="presetList"></div></section>
+    </section>
+    <aside class="inspector panel" id="inspector" aria-label="파티클 설정">
+      <div class="panel-heading"><span class="overline">03 / INSPECTOR</span><span>REAL-TIME</span></div>
+      <h2>Shape the motion<span class="muted-period">.</span></h2><div class="inspect-selected"><div class="selected-icon" id="selectedIcon">✦</div><div><span class="inspect-caption">EDITING LAYER</span><strong id="selectedName">Glow Particles</strong></div><span id="selectedNumber" class="selected-number">01</span></div>
+      <div class="inspector-scroll">
+        <div class="control-group"><h3>EMISSION <span>01</span></h3>
+          <div class="control" data-control="amount"><label>Density <output>75%</output></label><input type="range" min="0" max="100" value="75"/></div>
+          <div class="control" data-control="rate"><label>Spawn rate <output>100%</output></label><input type="range" min="0" max="200" value="100"/></div>
+          <div class="control" data-control="life"><label>Lifetime <output>100%</output></label><input type="range" min="10" max="200" value="100"/></div>
+          <div class="control"><label for="emitter">Emitter shape</label><select id="emitter"><option value="point">Point</option><option value="line">Line</option><option value="ring">Circle / Ring</option><option value="box">Box / Volume</option><option value="top">Top edge</option><option value="bottom">Bottom edge</option><option value="left">Left edge</option><option value="mask">Text mask</option><option value="path">Pointer path</option></select></div>
+        </div>
+        <div class="control-group"><h3>APPEARANCE <span>02</span></h3>
+          <div class="control" data-control="size"><label>Particle size <output>100%</output></label><input type="range" min="20" max="200" value="100"/></div>
+          <div class="control" data-control="opacity"><label>Opacity <output>85%</output></label><input type="range" min="0" max="100" value="85"/></div>
+          <div class="control" data-control="glow"><label>Glow intensity <output>65%</output></label><input type="range" min="0" max="100" value="65"/></div>
+          <div class="control color-control"><label for="particleColor">Color accent</label><div class="color-input"><input id="particleColor" type="color" value="#91caff"/><code id="colorCode">#91CAFF</code></div></div>
+          <div class="control"><label for="blend">Blend mode</label><select id="blend"><option value="lighter">Additive</option><option value="screen">Screen</option><option value="source-over">Normal alpha</option></select></div>
+        </div>
+        <div class="control-group"><h3>FORCES & MOVEMENT <span>03</span></h3>
+          <div class="control" data-control="speed"><label>Velocity <output>100%</output></label><input type="range" min="0" max="200" value="100"/></div>
+          <div class="control" data-control="direction"><label>Direction <output>0°</output></label><input type="range" min="-180" max="180" value="0"/></div>
+          <div class="control" data-control="gravity"><label>Gravity <output>0</output></label><input type="range" min="-100" max="100" value="0"/></div>
+          <div class="control" data-control="wind"><label>Wind <output>0</output></label><input type="range" min="-100" max="100" value="0"/></div>
+          <div class="control" data-control="turbulence"><label>Turbulence <output>25%</output></label><input type="range" min="0" max="100" value="25"/></div>
+        </div>
+        <div class="control-group"><h3>INTERACTION <span>04</span></h3>
+          <div class="mode-buttons" id="pointerModes"><button class="active" data-pointer="attract">◉ Attract</button><button data-pointer="repel">↗ Repel</button></div>
+          <label class="check-label"><input id="loopToggle" type="checkbox" checked/> Loop emission</label>
+        </div>
+        <div class="control-group"><h3>PERFORMANCE <span>05</span></h3><div class="control"><label for="quality">Rendering quality</label><select id="quality"><option value="auto">Auto · adaptive</option><option value="low">Low · battery saver</option><option value="high">High · detail</option></select></div><label class="check-label"><input id="seedLock" type="checkbox" checked/> Lock random seed</label><button class="full-btn" id="randomSeedBtn">↻ REGENERATE SEED</button></div>
+      </div>
+      <div class="inspector-footer"><button id="resetLayerBtn">RESET LAYER</button><button id="saveBtn" class="accent-button">SAVE PRESET ↗</button></div>
+    </aside>
+  </div>
+  <footer class="page-footer"><div><b>VISUALLAB</b><span>PARTICLE ATELIER · A CREATIVE PLAYGROUND</span></div><div><button id="exportBtn">EXPORT JSON ↗</button><button id="importBtn">IMPORT JSON ↗</button><input id="importFile" type="file" accept=".json,application/json" hidden/></div></footer>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</main>
+<script is:inline type="module">
+import {ParticleEngine,EFFECTS,EFFECT_MAP,CATEGORIES,PRESETS} from '/particle-engine.js';
+const $=s=>document.querySelector(s);
+const $$=s=>[...document.querySelectorAll(s)];
+const canvas=$('#particleCanvas'),stage=$('#stage');
+const engine=new ParticleEngine(canvas,({fps,particles,cap})=>{$('#fpsLabel').textContent=fps+' FPS';$('#particleLabel').textContent=particles+' / '+cap+' PARTICLES';});
+const icon={Nature:'◈',Light:'✦',Impact:'✳',Digital:'◇'};
+let selected=null,activeCategory='All',filter='',activePreset='Aurora Drift',toastTimeout;
+const notify=t=>{const el=$('#toast');el.textContent=t;el.classList.add('shown');clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>el.classList.remove('shown'),2500);};
+const escapeText=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function applyPreset(p){
+  engine.layers=[];engine.reset();
+  p.layers.forEach((id,i)=>engine.makeLayer(id,{color:p.colors[i]}));
+  activePreset=p.name;selected=engine.layers[0]?.uid;
+  engine.reset();renderAll();
+}
+function chosen(){return engine.layers.find(l=>l.uid===selected)||engine.layers[0];}
+function renderEffects(){
+ const list=EFFECTS.filter(e=>(activeCategory==='All'||e.group===activeCategory)&&(!filter||(e.name+' '+e.group+' '+e.id).toLowerCase().includes(filter)));
+ $('#effectCount').textContent=list.length+' EFFECTS';
+ $('#effectList').innerHTML=list.map(e=>{
+ const active=chosen()?.effectId===e.id;
+ return '<div class="effect-item '+(active?'active':'')+'" role="listitem"><button class="effect-select" data-select-effect="'+e.id+'" title="효과 선택 및 미리보기"><span class="effect-symbol" style="--swatch:'+e.color+'">'+icon[e.group]+'</span><span><b>'+escapeText(e.name)+'</b><small>'+e.group.toUpperCase()+'</small></span></button><button class="effect-add" data-add-effect="'+e.id+'" title="현재 구성에 레이어 추가" aria-label="'+escapeText(e.name)+' 추가">＋</button></div>';
+ }).join('')||'<p class="empty">검색 결과가 없습니다.</p>';
+}
+function renderLayers(){
+ $('#layerCount').textContent=String(engine.layers.length).padStart(2,'0')+' / 06 LAYERS';
+ $('#layerList').innerHTML=engine.layers.map((l,i)=>{
+ const d=EFFECT_MAP.get(l.effectId);
+ return '<div class="layer '+(selected===l.uid?'selected':'')+' '+(!l.enabled?'disabled':'')+'" data-layer="'+l.uid+'"><button class="layer-main" data-choose="'+l.uid+'"><span class="layer-order">'+String(i+1).padStart(2,'0')+'</span><span class="layer-swatch" style="background:'+l.color+'"></span><span class="layer-name">'+escapeText(d.name)+'<small>'+d.group+' / '+d.shape+'</small></span></button><button class="layer-visibility" data-toggle="'+l.uid+'" title="표시 전환">'+(l.enabled?'◉':'○')+'</button><button class="layer-remove" data-remove="'+l.uid+'" aria-label="레이어 제거">×</button></div>';
+ }).join('')||'<div class="empty-state">Empty composition · Add an effect to begin.</div>';
+ $('#addLayerBtn').disabled=engine.layers.length>=6;
+ $('#stageTitle').querySelector('span').textContent=String(engine.layers.filter(l=>l.enabled).length).padStart(3,'0')+' ACTIVE LAYERS';
+}
+function syncInspector(){
+ const l=chosen();
+ if(!l)return;
+ const d=EFFECT_MAP.get(l.effectId);
+ $('#selectedName').textContent=d.name;$('#selectedIcon').textContent=icon[d.group];
+ $('#selectedIcon').style.color=l.color;
+ $('#selectedNumber').textContent=String(engine.layers.indexOf(l)+1).padStart(2,'0');
+ $$('.control[data-control]').forEach(el=>{const k=el.dataset.control,input=el.querySelector('input'),output=el.querySelector('output');input.value=l[k];output.value=l[k]+(['direction'].includes(k)?'°':['gravity','wind'].includes(k)?'':'%');});
+ $('#particleColor').value=l.color;$('#colorCode').textContent=l.color.toUpperCase();
+ $('#emitter').value=l.emitter;$('#blend').value=l.blend;$('#loopToggle').checked=l.loop;
+}
+function renderPresets(){
+ $('#presetList').innerHTML=PRESETS.map((p,i)=>'<button class="preset-card '+(activePreset===p.name?'active':'')+'" data-preset="'+i+'"><span class="preset-art" style="--pc1:'+p.colors[0]+';--pc2:'+p.colors[1]+';--pc3:'+p.colors[2]+'"></span><span><b>'+escapeText(p.name)+'</b><small>'+escapeText(p.caption)+'</small></span><span class="preset-arrow">↗</span></button>').join('');
+}
+function renderAll(){
+ renderEffects();renderLayers();syncInspector();renderPresets();
+ $('#stageTitle').firstChild.textContent=activePreset==='Custom'?'CUSTOM COMPOSITION':activePreset.toUpperCase();
+ $('#stageDesc').textContent=activePreset+' / '+engine.layers.length+' layers';
+ $('#quality').value=engine.quality;$('#seedLock').checked=engine.lockSeed;
+ $('#timeScale').value=String(engine.timeScale*100);$('#timeValue').textContent=engine.timeScale.toFixed(1)+'×';
+ $$('#pointerModes button').forEach(b=>b.classList.toggle('active',b.dataset.pointer===engine.pointerMode));
+}
+function add(id,replace=false){
+ if(replace){engine.layers=[];engine.reset();}
+ if(engine.layers.length>=6)return notify('최대 6개 레이어를 조합할 수 있습니다.');
+ const l=engine.makeLayer(id);if(!l)return;
+ selected=l.uid;activePreset='Custom';engine.reset();renderAll();
+}
+$('#effectList').addEventListener('click',e=>{
+ const add=e.target.closest('[data-add-effect]'),select=e.target.closest('[data-select-effect]');
+ if(add)return addEffect(add.dataset.addEffect);
+ if(select) add(select.dataset.selectEffect,true);
+});
+function addEffect(id){add(id);}
+$$('.category-nav button').forEach(b=>b.addEventListener('click',()=>{activeCategory=b.dataset.category;$$('.category-nav button').forEach(x=>x.classList.toggle('active',x===b));renderEffects();}));
+$('#effectSearch').addEventListener('input',e=>{filter=e.target.value.trim().toLowerCase();renderEffects();});
+$('#layerList').addEventListener('click',e=>{
+ const choose=e.target.closest('[data-choose]'),remove=e.target.closest('[data-remove]'),toggle=e.target.closest('[data-toggle]');
+ if(remove){const id=Number(remove.dataset.remove);engine.removeLayer(id);if(selected===id)selected=engine.layers[0]?.uid;activePreset='Custom';renderAll();}
+ else if(toggle){const l=engine.layers.find(l=>l.uid===Number(toggle.dataset.toggle));if(l){l.enabled=!l.enabled;activePreset='Custom';renderAll();}}
+ else if(choose){selected=Number(choose.dataset.choose);renderAll();}
+});
+$('#addLayerBtn').addEventListener('click',()=>{document.getElementById('library').scrollIntoView({behavior:'smooth',block:'nearest'});notify('왼쪽 라이브러리에서 + 버튼으로 효과를 추가하세요.');});
+$('#clearBtn').addEventListener('click',()=>{engine.layers=[];engine.reset();selected=null;activePreset='Custom';renderAll();});
+$('#presetList').addEventListener('click',e=>{const b=e.target.closest('[data-preset]');if(b)applyPreset(PRESETS[Number(b.dataset.preset)]);});
+$$('.control[data-control]').forEach(el=>{
+ const key=el.dataset.control,input=el.querySelector('input');
+ input.addEventListener('input',()=>{const l=chosen();if(!l)return;l[key]=Number(input.value);el.querySelector('output').value=input.value+(key==='direction'?'°':['gravity','wind'].includes(key)?'':'%');activePreset='Custom';});
+ input.addEventListener('change',()=>{renderPresets();if(['amount','life'].includes(key))engine.clearParticles();});
+});
+['emitter','blend'].forEach(id=>$('#'+id).addEventListener('change',e=>{const l=chosen();if(l){l[id]=e.target.value;activePreset='Custom';engine.clearParticles();renderPresets();}}));
+$('#particleColor').addEventListener('input',e=>{const l=chosen();if(l){l.color=e.target.value;$('#colorCode').textContent=l.color.toUpperCase();$('#selectedIcon').style.color=l.color;activePreset='Custom';renderLayers();renderPresets();}});
+$('#loopToggle').addEventListener('change',e=>{const l=chosen();if(l){l.loop=e.target.checked;l.burstPending=true;}});
+$$('#pointerModes button').forEach(b=>b.addEventListener('click',()=>{engine.pointerMode=b.dataset.pointer;$$('#pointerModes button').forEach(x=>x.classList.toggle('active',b===x));}));
+$('#quality').addEventListener('change',e=>{engine.quality=e.target.value;engine.adaptiveScale=1;engine.resize();});
+$('#seedLock').addEventListener('change',e=>engine.lockSeed=e.target.checked);
+$('#randomSeedBtn').addEventListener('click',()=>{engine.reset(true);notify('새 랜덤 시드를 생성했습니다.');});
+$('#resetLayerBtn').addEventListener('click',()=>{const l=chosen();if(!l)return;const i=engine.layers.indexOf(l);engine.layers.splice(i,1);const newLayer=engine.makeLayer(l.effectId);engine.layers.pop();engine.layers.splice(i,0,newLayer);selected=newLayer.uid;activePreset='Custom';engine.reset();renderAll();});
+function updatePlay(){ $('#playBtn').textContent=engine.playing?'Ⅱ':'▶';$('#playBtn').setAttribute('aria-label',engine.playing?'일시정지':'재생');$('#playStatus').textContent=engine.playing?'SIMULATING':'PAUSED'; }
+$('#playBtn').addEventListener('click',()=>{engine.playing=!engine.playing;updatePlay();});
+$('#restartBtn').addEventListener('click',()=>{engine.reset();notify('시뮬레이션을 재시작했습니다.');});
+$('#burstBtn').addEventListener('click',()=>engine.burst());
+$('#timeScale').addEventListener('input',e=>{engine.timeScale=Number(e.target.value)/100;$('#timeValue').textContent=engine.timeScale.toFixed(1)+'×';});
+$('#fullscreenBtn').addEventListener('click',async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await stage.requestFullscreen();}catch{notify('전체 화면 기능을 사용할 수 없습니다.');}});
+stage.addEventListener('pointermove',e=>{const r=stage.getBoundingClientRect();engine.setPointer(e.clientX-r.left,e.clientY-r.top,true,e.buttons!==0);});
+stage.addEventListener('pointerleave',()=>engine.pointer.active=false);
+stage.addEventListener('pointerdown',e=>{if(e.pointerType==='touch')e.preventDefault();const r=stage.getBoundingClientRect();engine.setPointer(e.clientX-r.left,e.clientY-r.top,true,true);engine.burst(e.clientX-r.left,e.clientY-r.top);});
+stage.addEventListener('pointerup',()=>engine.pointer.down=false);
+const KEY='visual-lab-particle-presets';
+function save(){
+ const name=prompt('프리셋 이름을 입력하세요.','My particle composition');if(!name)return;
+ const snap=engine.snapshot(),entry={name:name.trim().slice(0,45),snapshot:snap};
+ try{
+  const prev=JSON.parse(localStorage.getItem(KEY)||'[]');
+  prev.unshift(entry);localStorage.setItem(KEY,JSON.stringify(prev.slice(0,12)));
+  notify('브라우저에 프리셋이 저장되었습니다.');renderSaved();
+ }catch{notify('로컬 저장소에 접근할 수 없습니다.');}
+}
+function renderSaved(){
+ let list=[];try{list=JSON.parse(localStorage.getItem(KEY)||'[]');if(!Array.isArray(list))list=[];}catch{}
+ let host=$('#savedPresets');
+ if(!host){host=document.createElement('div');host.id='savedPresets';host.className='saved-presets';$('#presetList').after(host);}
+ host.replaceChildren();
+ if(!list.length)return;
+ const cap=document.createElement('p');cap.textContent='YOUR SAVED PRESETS';cap.className='overline';host.append(cap);
+ list.forEach((p,i)=>{const btn=document.createElement('button');btn.textContent='↗ '+p.name;btn.addEventListener('click',()=>{try{engine.load(p.snapshot);selected=engine.layers[0]?.uid;activePreset=p.name;renderAll();}catch{notify('프리셋을 불러올 수 없습니다.');}});host.append(btn);});
+}
+$('#saveBtn').addEventListener('click',save);
+$('#exportBtn').addEventListener('click',()=>{
+ const data=JSON.stringify(engine.snapshot(),null,2),blob=new Blob([data],{type:'application/json'});
+ const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='particle-atelier-preset.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+ notify('설정 JSON 파일을 내보냈습니다.');
+});
+$('#importBtn').addEventListener('click',()=>$('#importFile').click());
+$('#importFile').addEventListener('change',async e=>{
+ const file=e.target.files?.[0];if(!file)return;
+ try{if(file.size>200000)throw Error('large');const data=JSON.parse(await file.text());engine.load(data);selected=engine.layers[0]?.uid;activePreset='Imported preset';renderAll();notify('프리셋을 불러왔습니다.');}catch{notify('유효한 파티클 JSON 파일이 아닙니다.');}e.target.value='';
+});
+window.addEventListener('pagehide',()=>engine.destroy(),{once:true});
+applyPreset(PRESETS[0]);renderSaved();updatePlay();
+</script>
+<style>
+:global(html){scroll-behavior:smooth}
+:global(body.particle-atelier-page){background:#090d17;color:#e6eaf4;overflow-x:hidden}
+:global(body.particle-atelier-page .theme-toggle){background:#171c2b;color:#edf1ff;border-color:#343b4f}
+.atelier{--hair:rgba(170,188,220,.14);--dim:#808b9f;--mint:#b5f5d6;max-width:1800px;margin:auto;padding:0 36px 50px}
+button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.35;cursor:not-allowed}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #b5f5d6;outline-offset:3px}
+.topbar{height:75px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--hair)}.brand{display:flex;align-items:center;gap:24px;font-size:10px;letter-spacing:.15em;color:#8794aa}.brand a{font-size:14px;letter-spacing:-.05em;color:#e8effc}.brand a b{font-weight:800}.sep{height:20px;width:1px;background:var(--hair)}.status{display:flex;gap:12px;align-items:center;letter-spacing:.17em;font-size:9px;color:#a8b1c7}.live-dot,.stage-dot{display:inline-block;width:6px;height:6px;border-radius:100%;background:#b0ffcf;box-shadow:0 0 14px #80ffc2}.version{border-left:1px solid var(--hair);padding-left:16px;color:#626d82}
+.heading{padding:45px 0 39px;display:flex;justify-content:space-between;align-items:end;gap:30px}.overline{font-size:10px;font-weight:750;letter-spacing:.16em;color:#9bb1c0}.heading h1{font-size:clamp(43px,5vw,75px);letter-spacing:-.077em;line-height:1.1;margin:14px 0 17px;font-weight:730}.heading h1 em{color:#b9edd5;font-family:Georgia,serif;font-weight:400}.heading p{color:#9aa5b7;font-size:13px;margin:0;line-height:1.7}.heading-side{display:flex;gap:24px;font-size:9px;letter-spacing:.11em;color:#67758b;white-space:nowrap}
+.workspace{display:grid;grid-template-columns:minmax(225px,260px) minmax(360px,1fr) minmax(235px,270px);gap:17px;align-items:start}.panel{border:1px solid var(--hair);border-radius:10px;background:#101522;padding:20px;min-height:630px}.panel-heading{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:9px;letter-spacing:.12em;color:#627088}.panel h2,.mixer h2{font-size:20px;letter-spacing:-.055em;margin:20px 0}.muted-period{color:#8be9bd}.search{position:relative;display:block}.search svg{position:absolute;width:16px;left:12px;top:13px;fill:none;stroke:#808ca2;stroke-width:1.5}.search input{width:100%;background:#171d2b;border:1px solid #293245;border-radius:6px;color:#edf1f7;padding:12px 10px 12px 34px;font-size:12px;outline:0}.search input::placeholder{color:#69778b}.category-nav{display:flex;gap:3px;overflow-x:auto;border-bottom:1px solid var(--hair);padding:20px 0 12px;scrollbar-width:none}.category-nav button{border:0;background:transparent;color:#8b95aa;border-radius:5px;padding:7px;font-size:10px;white-space:nowrap}.category-nav button span{opacity:.56;font-size:9px}.category-nav button.active{background:#293b3d;color:#bbf0dc}.effect-list{height:552px;overflow-y:auto;scrollbar-color:#3b455a transparent;scrollbar-width:thin;padding-top:7px}.effect-item{display:flex;border-radius:7px;transition:background .18s}.effect-item:hover,.effect-item.active{background:#1b2633}.effect-select{border:0;background:none;min-width:0;flex:1;display:flex;align-items:center;gap:12px;text-align:left;color:#d9e3f2;padding:10px 4px}.effect-symbol{display:grid;place-items:center;flex:0 0 34px;height:34px;border:1px solid color-mix(in srgb,var(--swatch) 40%,transparent);background:color-mix(in srgb,var(--swatch) 9%,transparent);border-radius:7px;color:var(--swatch);font-size:21px}.effect-select b,.effect-select small{display:block}.effect-select b{font-size:11px;white-space:nowrap}.effect-select small{margin-top:4px;font-size:8px;color:#65758d;letter-spacing:.12em}.effect-add{border:0;background:none;color:#8ca0b8;padding:0 9px;font-size:18px}.effect-add:hover{color:#bdf6d6}.sidebar-note{display:flex;justify-content:space-between;border-top:1px solid var(--hair);padding-top:17px;font-size:9px;color:#73819a;letter-spacing:.08em}
+.stage-section{min-width:0}.stage-top{height:41px;display:flex;justify-content:space-between;align-items:center;padding:0 4px;color:#cdd9ea;gap:12px}.stage-top>div{display:flex;align-items:center;gap:9px}.stage-top b{font-size:10px;letter-spacing:.1em}.stage-desc{font-size:10px;color:#8190a6}.stage-stats{white-space:nowrap;font-size:9px;color:#9bacc4;letter-spacing:.08em}.stage-stats span+span{margin-left:15px}.stage{height:clamp(340px,37vw,550px);position:relative;overflow:hidden;border:1px solid #283550;border-radius:9px;background:#080c18;touch-action:none;cursor:crosshair}.stage:fullscreen{height:100%;width:100%;border-radius:0}#particleCanvas{display:block;width:100%;height:100%}.stage-overlay{position:absolute;left:23px;right:23px;top:20px;display:flex;justify-content:space-between;pointer-events:none;font-size:9px;letter-spacing:.14em;color:#8097b6}.stage-center-label{position:absolute;top:48%;left:50%;transform:translate(-50%,-50%);text-align:center;white-space:nowrap;font-size:clamp(16px,2.4vw,32px);font-weight:250;letter-spacing:.3em;color:rgba(216,235,255,.12);pointer-events:none}.stage-center-label span{display:block;margin-top:13px;font-size:9px;letter-spacing:.25em;color:rgba(197,223,255,.23)}.stage-hint{position:absolute;bottom:19px;width:100%;text-align:center;font-size:9px;letter-spacing:.15em;color:#9caccc;pointer-events:none}
+.transport{height:64px;display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px solid var(--hair)}.transport-main,.transport-end{display:flex;align-items:center;gap:11px}.primary-icon{width:31px;height:31px;border:0;background:#c3f8dc;color:#10201b;border-radius:5px;font-weight:900}.icon-btn{border:1px solid #2f394e;border-radius:5px;background:#182131;color:#b7c8dc;width:31px;height:31px;font-size:20px}.transport-divider{width:1px;height:23px;background:var(--hair);margin:0 5px}.transport-status{font-size:9px;letter-spacing:.1em;color:#8d9cb3}.transport-end label{font-size:9px;color:#8b9cb1;letter-spacing:.09em;display:flex;align-items:center;gap:10px}.transport-end strong{color:#c7e7d9;min-width:31px}.transport-end input{width:75px;accent-color:#b5f5d6}.text-btn{border:0;background:none;color:#b5c4d7;font-size:10px;letter-spacing:.09em}
+.mixer{padding:25px 0 0}.mixer-heading{display:flex;justify-content:space-between;align-items:end}.mixer-heading h2{margin:5px 0 16px}.mixer-count{font-size:10px;color:#8090a7;letter-spacing:.11em;margin-bottom:20px}.layer-list{display:flex;flex-direction:column;gap:7px}.layer{display:flex;align-items:center;border:1px solid #273245;border-radius:6px;background:#111825}.layer.selected{border-color:#8ac6b4;background:#17232b}.layer.disabled{opacity:.42}.layer-main{flex:1;display:flex;gap:12px;align-items:center;text-align:left;min-width:0;padding:11px;border:0;background:none;color:#e5ebf7}.layer-order{font-size:10px;color:#73849d}.layer-swatch{width:21px;height:21px;flex-shrink:0;border-radius:50%;box-shadow:0 0 15px currentColor}.layer-name{font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.layer-name small{display:block;font-weight:400;font-size:9px;color:#8190a8;margin-top:3px}.layer-visibility,.layer-remove{border:0;background:none;color:#92a1b7;font-size:18px;padding:9px}.layer-remove{padding-right:15px}.mixer-actions{display:flex;justify-content:space-between;gap:10px;margin-top:13px}.mixer-actions button{border:1px solid #29364a;background:#192432;color:#baf1d6;padding:10px 13px;font-size:10px;font-weight:750;letter-spacing:.09em;border-radius:5px}.mixer-actions button+button{color:#9aa8bb;background:none}.empty-state,.empty{padding:35px 10px;text-align:center;color:#8390a6;font-size:12px}
+.presets{margin-top:42px}.presets-heading h2{margin:8px 0 16px;font-size:20px;letter-spacing:-.04em}.preset-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.preset-card{display:flex;align-items:center;text-align:left;gap:10px;border:1px solid #273347;border-radius:7px;padding:11px;background:#111825;color:#e7edf7;min-width:0}.preset-card.active{border-color:#72bda1}.preset-art{display:block;flex-shrink:0;width:43px;height:43px;border-radius:6px;background:radial-gradient(circle at 32% 31%,var(--pc1),transparent 37%),radial-gradient(circle at 70% 67%,var(--pc2),transparent 45%),radial-gradient(circle at 45% 65%,var(--pc3),#0b1327 70%)}.preset-card b,.preset-card small{display:block}.preset-card b{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.preset-card small{font-size:9px;color:#8a9ab3;margin-top:5px}.preset-card>span:nth-child(2){min-width:0;flex:1}.preset-arrow{font-size:14px;color:#8eabc5}.saved-presets{padding:15px 0}.saved-presets button{border:1px solid #334154;background:#111d2c;color:#c1f2dd;border-radius:4px;padding:8px;margin:7px 5px 0 0;font-size:11px}
+.inspect-selected{display:flex;gap:11px;align-items:center;margin:28px 0 15px;padding:13px;background:#1a2432;border:1px solid #29394a;border-radius:6px}.selected-icon{height:36px;width:36px;display:grid;place-items:center;font-size:25px;background:#243045;border-radius:5px}.inspect-selected>div:nth-child(2){flex:1;min-width:0}.inspect-caption{display:block;font-size:9px;letter-spacing:.1em;color:#7e8da4}.inspect-selected strong{font-size:12px;display:block;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.selected-number{font-size:11px;color:#7e90a8}.inspector-scroll{max-height:735px;overflow-y:auto;scrollbar-color:#37445a transparent;scrollbar-width:thin;padding-right:5px}.control-group{border-top:1px solid var(--hair);padding:17px 0 13px}.control-group h3{font-size:10px;letter-spacing:.13em;font-weight:760;color:#c4d3e6;display:flex;justify-content:space-between;margin:0 0 19px}.control-group h3 span{color:#64738b}.control{margin-bottom:17px}.control>label{display:flex;justify-content:space-between;align-items:center;color:#a5afc1;font-size:11px;margin-bottom:9px}.control output{font-size:10px;color:#e4edf9}.control input[type=range]{width:100%;height:3px;display:block;accent-color:#c2f5d8;cursor:pointer}.control select{width:100%;padding:9px;background:#1b2535;border:1px solid #334258;border-radius:5px;color:#cad8e9;font-size:11px}.color-input{display:flex;align-items:center;gap:11px;background:#1a2434;padding:7px;border-radius:5px}.color-input input{width:36px;height:27px;padding:0;border:0;background:none;cursor:pointer}.color-input code{color:#c6d4e7;letter-spacing:.09em;font-size:11px}.mode-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px}.mode-buttons button{background:#1b2534;color:#97a7bc;border:1px solid #303c50;padding:10px 0;font-size:11px;border-radius:5px}.mode-buttons button.active{color:#c6f9dd;border-color:#77b49c;background:#233a3b}.check-label{display:flex;align-items:center;gap:9px;margin:16px 0;font-size:11px;color:#afbed0}.check-label input{accent-color:#a7eacd}.full-btn{width:100%;padding:10px;border:1px solid #3c4a60;border-radius:5px;background:#182436;color:#b6c8de;font-size:10px;letter-spacing:.09em}.inspector-footer{display:grid;grid-template-columns:1fr 1fr;gap:9px;border-top:1px solid var(--hair);padding-top:18px;margin-top:12px}.inspector-footer button{border:1px solid #354256;border-radius:5px;padding:12px 4px;font-size:10px;background:#1b2533;color:#afbed4;letter-spacing:.05em}.inspector-footer .accent-button{background:#baf1d4;border-color:#baf1d4;color:#0b201b;font-weight:800}
+.page-footer{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:45px;border-top:1px solid var(--hair);padding:25px 0 40px}.page-footer>div{display:flex;align-items:center;gap:22px}.page-footer b{font-size:13px;letter-spacing:-.04em}.page-footer span{font-size:9px;color:#7f8ba2;letter-spacing:.12em}.page-footer button{background:none;border:0;color:#b4c6dc;letter-spacing:.12em;font-size:10px}.toast{position:fixed;z-index:2000;left:50%;bottom:25px;transform:translate(-50%,15px);opacity:0;pointer-events:none;padding:12px 22px;background:#c3f5dc;border-radius:8px;color:#10221b;font-size:12px;box-shadow:0 12px 45px #0008;transition:.2s}.toast.shown{opacity:1;transform:translate(-50%,0)}
+@media(max-width:1200px){.atelier{padding:0 20px 45px}.workspace{grid-template-columns:215px minmax(320px,1fr)}.inspector{grid-column:1 / -1;min-height:0}.inspector-scroll{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 22px;max-height:none}.inspect-selected{max-width:340px}.heading-side{display:none}}
+@media(max-width:750px){.atelier{padding:0 14px 35px}.topbar{height:61px}.brand{gap:10px}.brand>span:last-child{font-size:8px}.status{font-size:8px}.version{display:none}.heading{padding:30px 0 25px}.heading h1{font-size:49px}.heading p{font-size:12px}.workspace{display:flex;flex-direction:column;gap:16px}.stage-section{order:0;width:100%}.library{order:1;width:100%;min-height:0}.inspector{order:2;width:100%}.effect-list{height:310px;display:grid;grid-template-columns:1fr 1fr;align-content:start}.effect-select{padding:8px 4px;gap:7px}.effect-symbol{flex-basis:29px;height:29px}.effect-select b{font-size:10px}.effect-add{padding:0 6px}.stage{height:clamp(330px,90vw,500px)}.stage-desc{max-width:125px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.stage-stats{font-size:8px}.stage-stats span+span{margin-left:7px}.stage-overlay{left:12px;right:12px;font-size:8px}.transport-end label{font-size:8px}.transport-end input{width:50px}.transport-status{display:none}.inspector-scroll{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px}.page-footer{flex-direction:column;align-items:flex-start}.page-footer>div{gap:12px}}
+@media(max-width:440px){.heading h1{font-size:43px}.stage{height:380px}.transport{gap:3px}.transport-main,.transport-end{gap:5px}.transport-end label{gap:4px}.transport-end input{width:46px}.text-btn{font-size:9px}.inspector-scroll{display:block}.preset-card{padding:8px;gap:7px}.preset-art{width:35px;height:35px}.preset-card b{font-size:10px}.preset-arrow{display:none}.brand .sep{display:none}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+</style>
+</BaseLayout>
